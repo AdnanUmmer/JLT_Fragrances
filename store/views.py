@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from email.utils import formataddr, parseaddr
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -10,7 +11,8 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -372,44 +374,98 @@ def _build_notification_message(orders):
     )
 
 
+def _notification_from_email():
+    configured_from = (settings.DEFAULT_FROM_EMAIL or "").strip()
+    display_name, parsed_email = parseaddr(configured_from)
+    smtp_user = (settings.EMAIL_HOST_USER or "").strip()
+    email_host = (settings.EMAIL_HOST or "").strip().lower()
+
+    fallback_email = parsed_email or smtp_user or configured_from
+    if not fallback_email:
+        return ""
+
+    if "gmail" in email_host and smtp_user and fallback_email.lower() != smtp_user.lower():
+        safe_sender = formataddr((display_name or "JLT Fragrances", smtp_user))
+        logger.warning(
+            "DEFAULT_FROM_EMAIL %r does not match Gmail SMTP user %r. Using the authenticated sender instead.",
+            configured_from,
+            smtp_user,
+        )
+        return safe_sender
+
+    return formataddr((display_name, fallback_email)) if display_name else fallback_email
+
+
+def _send_owner_email_notification(subject, message_body, order_ids):
+    if not settings.OWNER_NOTIFICATION_EMAIL:
+        logger.info(
+            "Owner email notification skipped for orders %s because OWNER_NOTIFICATION_EMAIL is not configured.",
+            order_ids,
+        )
+        return False
+
+    from_email = _notification_from_email() or settings.DEFAULT_FROM_EMAIL
+
+    try:
+        email = EmailMessage(
+            subject=subject,
+            body=message_body,
+            from_email=from_email,
+            to=[settings.OWNER_NOTIFICATION_EMAIL],
+        )
+        sent_count = email.send(fail_silently=False)
+        if sent_count:
+            logger.info(
+                "Owner email sent successfully for orders %s to %s.",
+                order_ids,
+                settings.OWNER_NOTIFICATION_EMAIL,
+            )
+            return True
+
+        logger.error("Owner email backend reported no messages sent for orders %s.", order_ids)
+    except Exception as exc:
+        logger.exception("Owner email notification failed for orders %s: %s", order_ids, exc)
+
+    return False
+
+
+def _send_telegram_notification(message_body, order_ids):
+    if not settings.TELEGRAM_BOT_TOKEN or not settings.TELEGRAM_CHAT_ID:
+        return False
+
+    try:
+        telegram_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = json.dumps(
+            {
+                "chat_id": settings.TELEGRAM_CHAT_ID,
+                "text": message_body,
+            }
+        ).encode("utf-8")
+        request = Request(
+            telegram_url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=10) as response:
+            response.read()
+        logger.info("Telegram notification sent successfully for orders %s.", order_ids)
+        return True
+    except Exception:
+        logger.exception("Telegram notification failed for orders %s", order_ids)
+        return False
+
+
 def _send_owner_notifications(orders):
     if not orders:
         return
 
+    order_ids = [order.id for order in orders]
     message_body = _build_notification_message(orders)
     subject = f"New JLT Fragrances Order #{orders[0].id}"
 
-    if settings.OWNER_NOTIFICATION_EMAIL:
-        try:
-            send_mail(
-                subject,
-                message_body,
-                settings.DEFAULT_FROM_EMAIL,
-                [settings.OWNER_NOTIFICATION_EMAIL],
-                fail_silently=False,
-            )
-        except Exception:
-            logger.exception("Owner email notification failed for orders %s", [order.id for order in orders])
-
-    if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID:
-        try:
-            telegram_url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
-            payload = json.dumps(
-                {
-                    "chat_id": settings.TELEGRAM_CHAT_ID,
-                    "text": message_body,
-                }
-            ).encode("utf-8")
-            request = Request(
-                telegram_url,
-                data=payload,
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            with urlopen(request, timeout=10) as response:
-                response.read()
-        except Exception:
-            logger.exception("Telegram notification failed for orders %s", [order.id for order in orders])
+    _send_owner_email_notification(subject, message_body, order_ids)
+    _send_telegram_notification(message_body, order_ids)
 
 
 def _place_orders_for_payload(user, payload, payment_meta=None):
@@ -715,8 +771,43 @@ def account_view(request):
             "profile_form": profile_form,
             "newsletter_form": newsletter_form,
             "orders": orders,
+            "total_order_count": request.user.orders.count(),
             "wishlist_products": wishlist_products,
             "addresses": addresses,
+            "wishlist_items": get_wishlist_ids(request),
+        },
+    )
+
+
+@login_required(login_url="login")
+def my_orders(request):
+    orders = request.user.orders.select_related("product", "variant")
+    paginator = Paginator(orders, 8)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(
+        request,
+        "store/my_orders.html",
+        {
+            "page_obj": page_obj,
+            "orders": page_obj.object_list,
+            "wishlist_items": get_wishlist_ids(request),
+        },
+    )
+
+
+@login_required(login_url="login")
+def my_order_detail(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_related("product", "variant"),
+        id=order_id,
+        user=request.user,
+    )
+    return render(
+        request,
+        "store/order_detail.html",
+        {
+            "order": order,
             "wishlist_items": get_wishlist_ids(request),
         },
     )

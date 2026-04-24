@@ -1,0 +1,44 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="orders-shell">
+    <div class="orders-detail-head">
+        <a href="{% url 'my_orders' %}" class="luxury-secondary-btn">Back to My Orders</a>
+    </div>
+
+    <div class="order-detail-layout">
+        <article class="order-detail-visual luxury-panel">
+            {% if order.product and order.product.image %}
+                <img src="{{ order.product.image.url }}" alt="{{ order.product.inspired_by }}">
+            {% else %}
+                <img src="{% static 'Images/PlaceHolder.png' %}" alt="Order image placeholder">
+            {% endif %}
+        </article>
+
+        <article class="order-detail-copy luxury-panel">
+            <p class="auth-kicker">Order Detail</p>
+            <h1>#{{ order.id }}</h1>
+            <p class="auth-subheading">Placed on {{ order.created_at|date:"d M Y, h:i A" }}</p>
+
+            <div class="order-detail-grid">
+                <div><span>Product Name</span><strong>{{ order.product.inspired_by|default:'Signature Order' }}</strong></div>
+                <div><span>Brand</span><strong>{{ order.product.brand|default:'Not available' }}</strong></div>
+                <div><span>Size</span><strong>{{ order.variant.size|default:'Not available' }}</strong></div>
+                <div><span>Quantity</span><strong>{{ order.quantity }}</strong></div>
+                <div><span>Price</span><strong>Rs. {{ order.price }}</strong></div>
+                <div><span>Shipping Fee</span><strong>Rs. {{ order.shipping_fee }}</strong></div>
+                <div><span>Grand Total</span><strong>Rs. {{ order.total_amount }}</strong></div>
+                <div><span>Payment Method</span><strong>{{ order.payment_method }}</strong></div>
+                <div><span>Payment Status</span><strong>{{ order.payment_status }}</strong></div>
+                <div><span>Razorpay Payment ID</span><strong>{{ order.razorpay_payment_id|default:'Not available' }}</strong></div>
+                <div><span>Order Status</span><strong>{{ order.status }}</strong></div>
+                <div><span>Customer Name</span><strong>{{ order.full_name }}</strong></div>
+                <div><span>Email</span><strong>{{ order.email|default:'Not provided' }}</strong></div>
+                <div><span>Phone</span><strong>{{ order.phone_number }}</strong></div>
+                <div class="order-detail-address-block"><span>Shipping Address</span><strong>{{ order.address_line }}{% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}{% if order.landmark %}, {{ order.landmark }}{% endif %}, {{ order.city }}{% if order.state %}, {{ order.state }}{% endif %}, {{ order.country }} - {{ order.pincode }}</strong></div>
+            </div>
+        </article>
+    </div>
+</section>
+{% endblock %}

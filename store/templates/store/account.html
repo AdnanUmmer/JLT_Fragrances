@@ -10,15 +10,24 @@
     <div class="account-grid">
         <article class="account-panel">
             <div class="account-panel-head">
-                <h2>My Orders</h2>
-                <a href="#orders">Recent</a>
+                <h2><a href="{% url 'my_orders' %}" class="account-heading-link">My Orders</a></h2>
+                <a href="{% url 'my_orders' %}">View All Orders</a>
             </div>
             {% if orders %}
                 <ul class="account-list">
                     {% for order in orders %}
-                        <li>#{{ order.id }} {{ order.product.inspired_by|default:'Signature Order' }} <span>{{ order.status }}</span></li>
+                        <li>
+                            <a href="{% url 'my_order_detail' order.id %}" class="account-order-link">
+                                <strong>#{{ order.id }}</strong>
+                                <span>{{ order.product.inspired_by|default:'Signature Order' }}</span>
+                                <em>{{ order.status }}</em>
+                            </a>
+                        </li>
                     {% endfor %}
                 </ul>
+                {% if total_order_count > orders|length %}
+                    <a href="{% url 'my_orders' %}" class="luxury-secondary-btn account-inline-btn">View All Orders</a>
+                {% endif %}
             {% else %}
                 <p class="account-empty">Your first signature order will appear here.</p>
             {% endif %}

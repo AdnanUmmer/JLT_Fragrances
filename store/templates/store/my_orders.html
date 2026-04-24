@@ -1,0 +1,65 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="orders-shell">
+    <div class="orders-hero auth-card-entrance">
+        <p class="auth-kicker">Order Archive</p>
+        <h1>My Orders</h1>
+        <p class="auth-subheading">Every JLT Fragrances order in one place, arranged from newest to oldest.</p>
+    </div>
+
+    {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+                <a href="{% url 'my_order_detail' order.id %}" class="order-card luxury-panel">
+                    <div class="order-card-image">
+                        {% if order.product and order.product.image %}
+                            <img src="{{ order.product.image.url }}" alt="{{ order.product.inspired_by }}">
+                        {% else %}
+                            <img src="{% static 'Images/PlaceHolder.png' %}" alt="Order image placeholder">
+                        {% endif %}
+                    </div>
+
+                    <div class="order-card-copy">
+                        <div class="order-card-head">
+                            <div>
+                                <p class="order-card-label">Order ID</p>
+                                <h2>#{{ order.id }}</h2>
+                            </div>
+                            <span class="order-pill">{{ order.status }}</span>
+                        </div>
+
+                        <div class="order-card-grid">
+                            <div><p class="order-card-label">Product</p><strong>{{ order.product.inspired_by|default:'Signature Order' }}</strong></div>
+                            <div><p class="order-card-label">Ordered</p><strong>{{ order.created_at|date:"d M Y, h:i A" }}</strong></div>
+                            <div><p class="order-card-label">Payment Method</p><strong>{{ order.payment_method }}</strong></div>
+                            <div><p class="order-card-label">Payment Status</p><strong>{{ order.payment_status }}</strong></div>
+                            <div><p class="order-card-label">Order Status</p><strong>{{ order.status }}</strong></div>
+                            <div><p class="order-card-label">Total Amount</p><strong>Rs. {{ order.total_amount }}</strong></div>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="orders-pagination" aria-label="Orders pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="luxury-secondary-btn">Previous</a>
+                {% endif %}
+                <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="luxury-secondary-btn">Next</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="orders-empty luxury-panel">
+            <h2>No orders yet</h2>
+            <p>Your future fragrance selections will appear here after checkout.</p>
+            <a href="{% url 'collection' 'all' %}" class="luxury-primary-btn">Explore Collection</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

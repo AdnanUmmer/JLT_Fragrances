@@ -14,6 +14,8 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('logout/', views.logout_view, name='logout'),
     path('account/', views.account_view, name='account'),
+    path('my-orders/', views.my_orders, name='my_orders'),
+    path('my-orders/<int:order_id>/', views.my_order_detail, name='my_order_detail'),
     path('forgot-password/', views.LuxuryPasswordResetView.as_view(), name='password_reset'),
     path('auth-modal/', views.auth_required_modal, name='auth_required_modal'),
 
