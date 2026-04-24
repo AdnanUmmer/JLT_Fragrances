@@ -1,0 +1,9 @@
+Django>=5.2,<5.3
+django-allauth>=65,<66
+Pillow>=11,<12
+razorpay>=1.4,<2
+python-dotenv>=1.0,<2
+whitenoise>=6.8,<7
+gunicorn>=23,<24
+dj-database-url>=2.2,<3
+psycopg[binary]>=3.2,<4

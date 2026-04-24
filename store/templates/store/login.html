@@ -1,0 +1,61 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card auth-card-entrance">
+        <p class="auth-kicker">JLT FRAGRANCES</p>
+        <h1>Welcome Back</h1>
+        <p class="auth-subheading">Enter the world of luxury fragrance</p>
+
+        <form method="POST" class="auth-form" data-loading-form>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <div class="auth-field">
+                <label for="{{ form.username.id_for_label }}">Email Address</label>
+                {{ form.username }}
+                {% if form.username.errors %}<small class="auth-error">{{ form.username.errors.0 }}</small>{% endif %}
+            </div>
+
+            <div class="auth-field">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                <div class="lux-password-wrap">
+                    {{ form.password }}
+                    <button type="button" class="password-toggle" data-password-toggle aria-label="Show password"></button>
+                </div>
+                {% if form.password.errors %}<small class="auth-error">{{ form.password.errors.0 }}</small>{% endif %}
+            </div>
+
+            <div class="auth-row auth-row-between">
+                <label class="lux-check">
+                    {{ form.remember_me }}
+                    <span>Remember me</span>
+                </label>
+                <a href="{% url 'password_reset' %}" class="auth-link">Forgot Password</a>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="auth-banner-error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+
+            <button type="submit" class="luxury-primary-btn full-width" data-loading-button>
+                <span>Sign In</span>
+                <span class="button-spinner" aria-hidden="true"></span>
+            </button>
+
+            <div class="auth-divider"><span>OR</span></div>
+
+            {% if google_login_url %}
+                <a href="{{ google_login_url }}" class="luxury-google-btn">
+                    <span class="google-mark">G</span>
+                    Continue with Google
+                </a>
+            {% endif %}
+
+            <p class="auth-switch">
+                Don’t have an account?
+                <a href="{% url 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Create one</a>
+            </p>
+        </form>
+    </div>
+</section>
+{% endblock %}

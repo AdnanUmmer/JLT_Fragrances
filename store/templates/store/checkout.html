@@ -1,0 +1,205 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+<section class="checkout-shell" data-checkout-root>
+    <div class="premium-checkout-wrap">
+        <div class="checkout-main-panel luxury-panel">
+            <div class="checkout-header">
+                <div>
+                    <p class="auth-kicker">JLT FRAGRANCES</p>
+                    <h1>Private Checkout</h1>
+                    <p class="auth-subheading">Complete your order with a secure and refined checkout experience.</p>
+                </div>
+                <div class="checkout-delivery-pill" data-delivery-pill>{{ delivery_text }}</div>
+            </div>
+
+            <form
+                method="POST"
+                class="auth-form checkout-form-grid"
+                data-loading-form
+                data-checkout-form
+                data-create-order-url="{% url 'create_razorpay_order' %}"
+                data-verify-order-url="{% url 'verify_razorpay_payment' %}"
+            >
+                {% csrf_token %}
+                <input type="hidden" name="checkout_mode" value="{{ checkout_mode|default:'single' }}">
+                {% if checkout_mode != 'cart' %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                    <input type="hidden" name="quantity" value="{{ quantity }}">
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="auth-banner-error auth-field-full">
+                        Please review the highlighted checkout details and try again.
+                    </div>
+                {% endif %}
+
+                <div class="checkout-section-title auth-field-full">Billing & Shipping Details</div>
+
+                <div class="auth-field">
+                    <label for="{{ form.full_name.id_for_label }}">Full Name</label>
+                    {{ form.full_name }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.phone_number.id_for_label }}">Phone</label>
+                    {{ form.phone_number }}
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <label for="{{ form.address_line.id_for_label }}">Address Line 1</label>
+                    {{ form.address_line }}
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <label for="{{ form.address_line_2.id_for_label }}">Address Line 2</label>
+                    {{ form.address_line_2 }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.city.id_for_label }}">City</label>
+                    {{ form.city }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.state.id_for_label }}">State</label>
+                    {{ form.state }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.country.id_for_label }}">Country</label>
+                    {{ form.country }}
+                </div>
+
+                <div class="auth-field">
+                    <label for="{{ form.pincode.id_for_label }}">Postal Code</label>
+                    {{ form.pincode }}
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <label for="{{ form.landmark.id_for_label }}">Landmark</label>
+                    {{ form.landmark }}
+                </div>
+
+                <div class="checkout-section-title auth-field-full">Delivery Options</div>
+                <div class="auth-field auth-field-full">
+                    <div class="shipping-options">
+                        {% for choice in form.shipping_method %}
+                            <label class="shipping-option">
+                                {{ choice.tag }}
+                                <span class="shipping-option-copy">
+                                    <strong>{{ choice.choice_label }}</strong>
+                                    <small>{% if 'Express' in choice.choice_label %}Priority dispatch and faster doorstep delivery.{% else %}Curated standard delivery with complimentary shipping.{% endif %}</small>
+                                </span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="checkout-section-title auth-field-full">Payment Method</div>
+                <div class="auth-field auth-field-full">
+                    <label for="{{ form.payment_method.id_for_label }}">Choose Payment</label>
+                    {{ form.payment_method }}
+                    <button type="button" class="razorpay-btn" data-razorpay-button>
+                        <span>Pay Securely with Razorpay</span>
+                    </button>
+                    <p class="checkout-helper-text">Select any prepaid option to enable Razorpay. Cash on Delivery continues through the standard order button below.</p>
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <label class="lux-check">
+                        {{ form.save_address }}
+                        <span>Save this address for future orders</span>
+                    </label>
+                </div>
+
+                <div class="checkout-section-title auth-field-full">Policies</div>
+                <div class="policy-grid auth-field-full">
+                    <a href="{% url 'privacy_policy' %}" class="policy-card policy-card-link">
+                        <h3>Privacy Policy</h3>
+                        <p>Learn how your personal details, delivery information, and order history are protected with care.</p>
+                    </a>
+                    <a href="{% url 'refund_policy' %}" class="policy-card policy-card-link">
+                        <h3>Refund Policy</h3>
+                        <p>Review our guidance for eligible prepaid order issues, approvals, and refund timelines.</p>
+                    </a>
+                    <a href="{% url 'shipping_policy' %}" class="policy-card policy-card-link">
+                        <h3>Shipping Policy</h3>
+                        <p>See how complimentary standard delivery and optional express dispatch work for every order.</p>
+                    </a>
+                    <a href="{% url 'contact_us' %}" class="policy-card policy-card-link">
+                        <h3>Contact Us</h3>
+                        <p>Reach our concierge team for assistance with delivery, fragrance guidance, or order support.</p>
+                    </a>
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <button type="submit" class="luxury-primary-btn full-width" data-loading-button>
+                        <span>Place Order</span>
+                        <span class="button-spinner" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <aside
+            class="checkout-summary-panel luxury-panel"
+            data-checkout-summary
+            data-standard-shipping="0.00"
+            data-express-shipping="249.00"
+            data-subtotal="{{ subtotal }}"
+        >
+            <p class="auth-kicker">Order Summary</p>
+            <h2>Your Selection</h2>
+
+            <div class="checkout-summary-items">
+                {% for item in checkout_items %}
+                    <article class="checkout-summary-item">
+                        <div class="checkout-summary-image">
+                            {% if item.image %}
+                                <img src="{{ item.image }}" alt="{{ item.name }}">
+                            {% elif item.product and item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.name }}">
+                            {% else %}
+                                <img src="{% static 'Images/PlaceHolder.png' %}" alt="{{ item.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="checkout-summary-copy">
+                            <h3>{{ item.name }}</h3>
+                            <p>{% if item.variant %}{{ item.variant.size }}{% else %}{{ item.size }}{% endif %} | Qty {{ item.quantity }}</p>
+                            <strong>₹{{ item.total }}</strong>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="checkout-meta-list">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span data-subtotal-display>₹{{ subtotal }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span data-shipping-display>{% if shipping_fee > 0 %}₹{{ shipping_fee }}{% else %}Complimentary{% endif %}</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span data-total-display>₹{{ total_price }}</span>
+                </div>
+            </div>
+
+            <div class="checkout-note-box">
+                <h3>JLT FRAGRANCES Assurance</h3>
+                <p>Your order is prepared with signature presentation, secure packaging, and premium care.</p>
+            </div>
+        </aside>
+    </div>
+</section>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}

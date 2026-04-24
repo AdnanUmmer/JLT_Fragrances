@@ -1,0 +1,114 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<section class="account-shell">
+    <div class="account-hero auth-card-entrance">
+        <p class="auth-kicker">Private Client Lounge</p>
+        <h1>Hello, {{ request.user.first_name|default:nav_display_name }}</h1>
+        <p class="auth-subheading">A curated view of your fragrance world, orders, saved favourites, and profile details.</p>
+    </div>
+
+    <div class="account-grid">
+        <article class="account-panel">
+            <div class="account-panel-head">
+                <h2>My Orders</h2>
+                <a href="#orders">Recent</a>
+            </div>
+            {% if orders %}
+                <ul class="account-list">
+                    {% for order in orders %}
+                        <li>#{{ order.id }} {{ order.product.inspired_by|default:'Signature Order' }} <span>{{ order.status }}</span></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="account-empty">Your first signature order will appear here.</p>
+            {% endif %}
+        </article>
+
+        <article class="account-panel">
+            <div class="account-panel-head">
+                <h2>Wishlist</h2>
+                <a href="{% url 'wishlist' %}">Open wishlist</a>
+            </div>
+            {% if wishlist_products %}
+                <ul class="account-list">
+                    {% for product in wishlist_products %}
+                        <li>{{ product.inspired_by }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="account-empty">Save favourites to build your private fragrance shortlist.</p>
+            {% endif %}
+        </article>
+
+        <article class="account-panel">
+            <div class="account-panel-head">
+                <h2>Saved Addresses</h2>
+                <a href="{% url 'account' %}">Manage</a>
+            </div>
+            {% if addresses %}
+                <ul class="account-list">
+                    {% for address in addresses %}
+                        <li>{{ address.full_name }} - {{ address.city }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="account-empty">Add a preferred shipping destination for seamless checkout.</p>
+            {% endif %}
+        </article>
+
+        <article class="account-panel">
+            <div class="account-panel-head">
+                <h2>Profile Details</h2>
+            </div>
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_name" value="profile">
+                <div class="auth-field">
+                    <label for="{{ profile_form.first_name.id_for_label }}">First Name</label>
+                    {{ profile_form.first_name }}
+                </div>
+                <div class="auth-field">
+                    <label for="{{ profile_form.last_name.id_for_label }}">Last Name</label>
+                    {{ profile_form.last_name }}
+                </div>
+                <div class="auth-field">
+                    <label for="{{ profile_form.email.id_for_label }}">Email Address</label>
+                    {{ profile_form.email }}
+                </div>
+                <div class="auth-field">
+                    <label for="{{ profile_form.phone_number.id_for_label }}">Phone Number</label>
+                    {{ profile_form.phone_number }}
+                </div>
+                <button type="submit" class="luxury-secondary-btn full-width">Save Profile</button>
+            </form>
+        </article>
+
+        <article class="account-panel">
+            <div class="account-panel-head">
+                <h2>Newsletter Preferences</h2>
+            </div>
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                <input type="hidden" name="form_name" value="newsletter">
+                <label class="lux-check lux-check-spacious">
+                    {{ newsletter_form.receive_offers }}
+                    <span>Receive exclusive launches, private offers, and fragrance updates.</span>
+                </label>
+                <p class="account-empty">Refined communication, only when it matters.</p>
+                <button type="submit" class="luxury-secondary-btn full-width">Update Preferences</button>
+            </form>
+        </article>
+
+        <article class="account-panel account-panel-accent">
+            <div class="account-panel-head">
+                <h2>Logout</h2>
+            </div>
+            <p class="account-empty">Leave your session securely whenever you're ready.</p>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="luxury-primary-btn full-width">Logout</button>
+            </form>
+        </article>
+    </div>
+</section>
+{% endblock %}

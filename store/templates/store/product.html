@@ -1,0 +1,157 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+
+<section class="product-page" data-product-id="{{ product.id }}" data-default-variant-id="{% if product.variants.first %}{{ product.variants.first.id }}{% endif %}">
+    <a href="{% url 'collection' product.category %}" class="back-btn">
+        ← Back to Collections
+    </a>
+
+    <div class="product-container">
+        <div class="product-image">
+            <div class="product-gallery" data-product-gallery>
+                <button type="button" class="gallery-arrow gallery-arrow-left" data-gallery-prev aria-label="Previous image">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <div class="gallery-main-frame">
+                    {% if gallery_images %}
+                        <img
+                            src="{{ gallery_images.0.url }}"
+                            alt="{{ gallery_images.0.alt }}"
+                            class="gallery-main-image"
+                            data-gallery-main
+                        >
+                    {% else %}
+                        <img
+                            src="{% static 'Images/PlaceHolder.png' %}"
+                            alt="No Image"
+                            class="gallery-main-image"
+                            data-gallery-main
+                        >
+                    {% endif %}
+                </div>
+
+                <button type="button" class="gallery-arrow gallery-arrow-right" data-gallery-next aria-label="Next image">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                {% if gallery_images|length > 1 %}
+                    <div class="gallery-thumbs" data-gallery-thumbs>
+                        {% for image in gallery_images %}
+                            <button
+                                type="button"
+                                class="gallery-thumb{% if forloop.first %} active{% endif %}"
+                                data-gallery-thumb
+                                data-image-url="{{ image.url }}"
+                                data-image-alt="{{ image.alt }}"
+                                aria-label="View image {{ forloop.counter }}"
+                            >
+                                <img src="{{ image.url }}" alt="{{ image.alt }}">
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                <button class="cart-btn" type="button" onclick="handleAddToCart({{ product.id }})">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    Add to Cart
+                </button>
+
+                <button class="buy-btn" type="button" onclick="buyNow({{ product.id }})">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                    Buy Now
+                </button>
+            </div>
+
+            <div class="product-variants">
+                {% for variant in product.variants.all %}
+                    <button
+                        type="button"
+                        class="variant-box"
+                        data-id="{{ variant.id }}"
+                        onclick="selectVariant(this)"
+                        aria-label="Select {{ variant.size }} variant"
+                    >
+                        {{ variant.size }} <br>
+                        ₹{{ variant.price }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="product-info">
+            <div class="product-heading">
+                <h1 class="product-title">
+                    {% if product.category == 'like' %}
+                        <span class="inspired-text">Inspired by</span>
+                    {% endif %}
+                    {{ product.inspired_by }}
+                </h1>
+
+                <button type="button"
+                        class="wishlist-btn product-wishlist-btn {% if product.id in wishlist_items %}active{% endif %}"
+                        data-id="{{ product.id }}"
+                        data-product-url="{% url 'product_detail' product.id %}"
+                        aria-label="Toggle wishlist">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         fill="{% if product.id in wishlist_items %}beige{% else %}none{% endif %}"
+                         viewBox="0 0 24 24"
+                         stroke-width="1.5"
+                         stroke="currentColor">
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="notes-section">
+                <h3 class="notes-heading">Notes</h3>
+
+                <div class="note-row">
+                    <span class="note-label">Top Note</span>
+                    <span class="note-value">{{ product.top_note }}</span>
+                </div>
+
+                <div class="note-row">
+                    <span class="note-label">Middle Note</span>
+                    <span class="note-value">{{ product.middle_note }}</span>
+                </div>
+
+                <div class="note-row">
+                    <span class="note-label">Base Note</span>
+                    <span class="note-value">{{ product.base_note }}</span>
+                </div>
+            </div>
+
+            <div class="occasion-section">
+                <h3 class="notes-heading">Occasion</h3>
+
+                <div class="note-row">
+                    <span class="note-label">Best For</span>
+                    <span class="note-value">{{ product.occasion }}</span>
+                </div>
+            </div>
+
+            <div class="quantity-section">
+                <h3 class="qty-heading">Quantity</h3>
+
+                <div class="qty-box">
+                    <button type="button" onclick="decreaseQty()">−</button>
+                    <span id="qtyValue">1</span>
+                    <button type="button" onclick="increaseQty()">+</button>
+                </div>
+            </div>
+
+            <div class="product-desc">
+                <h3>Description</h3>
+                <p>{{ product.description|default:"A timeless fragrance crafted to leave a lasting impression, balancing elegance, texture, and depth in every spray." }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

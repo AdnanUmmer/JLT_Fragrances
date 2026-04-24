@@ -1,0 +1,19 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<section class="policy-shell">
+    <div class="policy-hero luxury-panel">
+        <p class="auth-kicker policy-kicker">{{ page.eyebrow }}</p>
+        <h1>{{ page.title }}</h1>
+        <p class="policy-intro">{{ page.intro }}</p>
+    </div>
+
+    <div class="policy-content-grid">
+        {% for section in page.sections %}
+            <article class="policy-content-card luxury-panel">
+                <h2>{{ section.heading }}</h2>
+                <p>{{ section.body }}</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

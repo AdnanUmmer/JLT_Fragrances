@@ -1,0 +1,32 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card auth-card-entrance auth-card-wide checkout-success-card">
+        <p class="auth-kicker">JLT FRAGRANCES</p>
+        <h1>Order Confirmed</h1>
+        <p class="auth-subheading">Your fragrance order has been placed successfully and is now being prepared with care.</p>
+
+        <div class="success-order-list">
+            {% for order in orders %}
+                <article class="success-order-item">
+                    <div>
+                        <strong>Order #{{ order.id }}</strong>
+                        <p>{{ order.product.inspired_by|default:"Fragrance Order" }}{% if order.variant %} | {{ order.variant.size }}{% endif %}</p>
+                    </div>
+                    <span>₹{{ order.total_amount }}</span>
+                </article>
+            {% endfor %}
+        </div>
+
+        <div class="summary-total success-total">
+            <span>Total</span>
+            <span>₹{{ total_amount }}</span>
+        </div>
+
+        <div class="luxury-modal-actions">
+            <a href="{% url 'account' %}" class="luxury-primary-btn">View Account</a>
+            <a href="{% url 'collection' 'all' %}" class="luxury-secondary-btn">Continue Shopping</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

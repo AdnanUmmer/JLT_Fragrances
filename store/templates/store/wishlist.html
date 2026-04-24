@@ -1,0 +1,72 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+{% comment %} WISHLIST PAGE {% endcomment %}
+
+<div class="wishlist-page">
+
+    <a href="{% url 'collection' 'all' %}" class="back-btn wishlist-back-btn">
+        ← Back to Collections
+    </a>
+
+    <h1 class="wishlist-title">
+        <span class="title-main">YOUR WISHLIST</span>
+        <span class="title-sub">Fragrances you have saved</span>
+    </h1>
+
+    {% if wishlist_products %}
+
+        <div class="wishlist-grid">
+
+            {% for product in wishlist_products %}
+
+                <div class="product-card wishlist-card">
+
+                    <a href="{% url 'product_detail' product.id %}" class="product-image">
+                        <div class="wishlist-img image-wrapper">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.inspired_by }}">
+                            {% else %}
+                                <img src="{% static 'images/placeholder.png' %}" alt="No Image">
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    <div class="card-info wishlist-info">
+                        <h3>
+                            {% if product.category == 'like' %}
+                                <span class="inspired-text">Inspired by</span>
+                                {{ product.inspired_by }}
+                            {% else %}
+                                {{ product.inspired_by }}
+                            {% endif %}
+                        </h3>
+
+                        <p class="wishlist-brand">{{ product.brand }}</p>
+
+                        <p class="wishlist-price price">
+                            {% if product.variants.all %}
+                                Starting from ₹{{ product.variants.all.0.price }}
+                            {% endif %}
+                        </p>
+
+                        <a href="{% url 'remove_from_wishlist' product.id %}" class="remove-wishlist">Remove</a>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="wishlist-empty">
+            <p>Your wishlist is empty</p>
+            <a href="{% url 'collection' 'all' %}" class="shop-btn">EXPLORE COLLECTION</a>
+        </div>
+
+    {% endif %}
+</div>
+{% endblock %}

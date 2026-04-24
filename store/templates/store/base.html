@@ -1,0 +1,430 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- META -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JLT Fragrances</title>
+</head>
+
+<body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}" data-auth-modal-url="{% url 'auth_required_modal' %}">
+
+    <!-- ================= NAVBAR ================= -->
+    {% include 'store/navbar.html' %}
+
+
+    <!-- ================= PAGE CONTENT ================= -->
+    {% if messages %}
+        <div class="luxury-toast-stack" id="toast-stack">
+            {% for message in messages %}
+                <div class="luxury-toast luxury-toast-{{ message.tags|default:'info' }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="luxury-toast-close" aria-label="Dismiss notification">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <div class="luxury-modal-backdrop" id="auth-modal" hidden>
+        <div class="luxury-modal-panel">
+            <button class="luxury-modal-close" type="button" aria-label="Close">&times;</button>
+            <p class="auth-kicker">Private Access</p>
+            <h3 id="auth-modal-title">Please sign in to save favourites.</h3>
+            <p id="auth-modal-message">Curate your fragrance wardrobe with a personal account.</p>
+            <div class="luxury-modal-actions">
+                <a href="{% url 'login' %}" class="luxury-primary-btn" id="auth-modal-login">Login</a>
+                <a href="{% url 'signup' %}" class="luxury-secondary-btn" id="auth-modal-signup">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="premium-notice-backdrop" id="premium-notice-modal" hidden>
+        <div class="premium-notice-panel" role="dialog" aria-modal="true" aria-labelledby="premium-notice-title">
+            <button class="premium-notice-close" type="button" aria-label="Close">&times;</button>
+            <div class="premium-notice-icon">
+                <i class="fa-solid fa-gem"></i>
+            </div>
+            <p class="auth-kicker">Selection Required</p>
+            <h3 id="premium-notice-title">Please select a size before continuing</h3>
+            <p id="premium-notice-message">Choose your preferred bottle size to continue with your order.</p>
+            <div class="premium-notice-actions">
+                <button type="button" class="luxury-primary-btn" id="premium-notice-confirm">OK</button>
+                <button type="button" class="luxury-secondary-btn" id="premium-notice-cancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        
+        /* ========== SIDEBAR MENU ========== */
+        const menuBtn = document.getElementById("menu-btn");
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+        const navbar = document.querySelector(".navbar");
+
+        function setMenuState(isOpen) {
+            if (!menuBtn || !sidebar || !overlay) return;
+
+            menuBtn.classList.toggle("active", isOpen);
+            menuBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+            menuBtn.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+            sidebar.classList.toggle("active", isOpen);
+            overlay.classList.toggle("active", isOpen);
+            navbar?.classList.toggle("menu-open", isOpen);
+            document.body.classList.toggle("no-scroll", isOpen);
+        }
+
+        if (menuBtn && sidebar && overlay) {
+            menuBtn.addEventListener("click", () => {
+                setMenuState(!menuBtn.classList.contains("active"));
+            });
+
+            overlay.addEventListener("click", (e) => {
+                if (e.target === overlay) {
+                    setMenuState(false);
+                }
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && menuBtn.classList.contains("active")) {
+                    setMenuState(false);
+                }
+            });
+        }
+        
+
+        /* ===== NAVBAR HIDE ON SCROLL ===== */
+        document.addEventListener("DOMContentLoaded", () => {
+            let lastScrollY = window.scrollY;
+
+            window.addEventListener("scroll", () => {
+                const currentScrollY = window.scrollY;
+
+                if (currentScrollY > lastScrollY) {
+                    navbar.classList.add("hide");
+                } else {
+                    navbar.classList.remove("hide");
+                }
+
+                lastScrollY = currentScrollY;
+            });
+        });
+
+
+        /* ===== PRICE SLIDER SAFETY (ONLY IF EXISTS) ===== */
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const minRange = document.getElementById("minRange");
+            const maxRange = document.getElementById("maxRange");
+            const minPrice = document.getElementById("min-price");
+            const maxPrice = document.getElementById("max-price");
+
+            if (minRange && maxRange && minPrice && maxPrice) {
+
+                minRange.addEventListener("input", () => {
+                    if (parseInt(minRange.value) >= parseInt(maxRange.value)) {
+                        minRange.value = maxRange.value - 1;
+                    }
+                    minPrice.textContent = "₹" + minRange.value;
+                });
+
+                maxRange.addEventListener("input", () => {
+                    if (parseInt(maxRange.value) <= parseInt(minRange.value)) {
+                        maxRange.value = parseInt(minRange.value) + 1;
+                    }
+                    maxPrice.textContent = "₹" + maxRange.value;
+                });
+            }
+
+        });
+
+        window.selectedVariantId = null;
+        window.qty = 1;
+
+        function updateQtyDisplay() {
+            const qtyValue = document.getElementById("qtyValue");
+            if (qtyValue) {
+                qtyValue.innerText = window.qty;
+            }
+        }
+
+        window.selectVariant = function (el) {
+            const productPage = el.closest(".product-page");
+            const variantBoxes = productPage ? productPage.querySelectorAll(".variant-box") : document.querySelectorAll(".variant-box");
+
+            variantBoxes.forEach((box) => {
+                box.classList.remove("active");
+                box.setAttribute("aria-pressed", "false");
+            });
+
+            el.classList.add("active");
+            el.setAttribute("aria-pressed", "true");
+            window.selectedVariantId = el.getAttribute("data-id");
+        };
+
+        window.handleAddToCart = function (productId) {
+            if (!window.selectedVariantId) {
+                window.premiumNoticeModal?.open({
+                    title: "Please select a size before continuing",
+                    message: "Choose a bottle size to add this fragrance to your bag."
+                });
+                return;
+            }
+
+            window.location.href = `/add-to-cart/${productId}/?variant=${window.selectedVariantId}&quantity=${window.qty}`;
+        };
+
+        window.increaseQty = function () {
+            window.qty += 1;
+            updateQtyDisplay();
+        };
+        
+        window.decreaseQty = function () {
+            if (window.qty > 1) {
+                window.qty -= 1;
+                updateQtyDisplay();
+            }
+        };
+        
+        window.buyNow = function (productId) {
+            if (!window.selectedVariantId) {
+                window.premiumNoticeModal?.open({
+                    title: "Please select a size before continuing",
+                    message: "Choose a bottle size to continue to our private checkout."
+                });
+                return;
+            }
+
+            const quantity = window.qty || 1;
+            const checkoutUrl = `/buy-now/${productId}/?quantity=${quantity}&variant=${window.selectedVariantId}`;
+            window.location.href = checkoutUrl;
+        };
+
+        /* ===== LUXURY NAVBAR SEARCH ===== */
+       document.addEventListener("DOMContentLoaded", function () {
+
+    /* ===== SEARCH ===== */
+    const form = document.getElementById("luxurySearchForm");
+    const input = document.getElementById("luxurySearchInput");
+    const button = document.getElementById("search-open");
+    const results = document.getElementById("liveResults");
+
+    if (!form || !input || !button || !results) return;
+
+    let opened = false;
+    let currentIndex = -1;
+
+    /* CLICK SEARCH ICON */
+    button.addEventListener("click", function (e) {
+
+        if (!opened) {
+            e.preventDefault();
+            form.classList.add("active");
+            input.focus();
+            opened = true;
+            return;
+        }
+
+        if (opened && input.value.trim() === "") {
+            e.preventDefault();
+            form.classList.remove("active");
+            results.classList.remove("show");
+            input.value = "";
+            opened = false;
+            return;
+        }
+    });
+
+    /* LIVE SEARCH */
+    input.addEventListener("input", function () {
+
+    let query = input.value.trim();
+
+    currentIndex = -1; // reset selection safely
+
+    if (query.length === 0) {
+        results.innerHTML = "";
+        results.classList.remove("show");
+        return;
+    }
+
+    fetch(`/live-search/?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+
+            let html = "";
+
+            data.forEach(item => {
+                html += `
+                    <a href="${item.url}" class="live-item">
+                        ${item.name}
+                        <span class="live-brand">${item.brand}</span>
+                    </a>
+                `;
+            });
+
+            results.innerHTML = html;
+            results.classList.add("show");
+        });
+});
+
+
+    /* KEYBOARD NAVIGATION */
+    input.addEventListener("keydown", function (e) {
+
+        const items = results.querySelectorAll(".live-item");
+
+        if (!items.length) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            currentIndex++;
+            if (currentIndex >= items.length) currentIndex = 0;
+            setActive(items);
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            currentIndex--;
+            if (currentIndex < 0) currentIndex = items.length - 1;
+            setActive(items);
+        }
+
+        if (e.key === "Enter" && currentIndex > -1) {
+            e.preventDefault();
+            items[currentIndex].click();
+        }
+    });
+
+    function setActive(items) {
+        items.forEach(item => item.classList.remove("active-search"));
+        if (currentIndex >= 0) {
+            items[currentIndex].classList.add("active-search");
+        }
+    }
+    
+    /* CLICK OUTSIDE */
+    document.addEventListener("click", function (e) {
+
+        if (!form.contains(e.target) && !results.contains(e.target)) {
+
+            results.classList.remove("show");
+
+            if (input.value.trim() === "") {
+                form.classList.remove("active");
+                opened = false;
+            }
+        }
+    });
+
+    /* ===== ACCORDION ===== */
+    window.toggleAccordion = function (id, el) {
+        let box = document.getElementById(id);
+        let sign = el.querySelector(".plus");
+
+        box.classList.toggle("active");
+
+        sign.innerText = box.classList.contains("active") ? "-" : "+";
+    };
+
+    /* ===== PRICE SLIDER ===== */
+    const priceRange = document.getElementById("priceRange");
+    
+        if (priceRange) {
+            priceRange.addEventListener("change", function () {
+    
+                let val = this.value;
+                let price = 1299;
+    
+                if (val == 1) price = 499;
+                if (val == 2) price = 799;
+                if (val == 3) price = 1299;
+    
+                window.location.href = "?price=" + price;
+            });
+        }
+    
+    });
+    
+            
+        
+        
+    </script>
+    <script src="{% static 'js/store.js' %}"></script>
+
+    {% comment %} Footer {% endcomment %}
+        <footer class="footer">
+            <div class='footer-container'>
+
+                {% comment %} Brand {% endcomment %}
+                <div class="footer-section">
+                    <h2>JLT FRAGRANCES</h2>
+                    <p>Discover Your Signature Scent</p>
+                </div>
+
+                {% comment %} Links {% endcomment %}
+                <div class="footer-section">
+                    <h3>Explore</h3>
+                    <ul>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'home' %}#collections">Collections</a></li>
+                        <li><a href="{% url 'collection' 'all' %}">Most Selling</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h3>Policies</h3>
+                    <ul>
+                        <li><a href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+                        <li><a href="{% url 'refund_policy' %}">Refund Policy</a></li>
+                        <li><a href="{% url 'shipping_policy' %}">Shipping Policy</a></li>
+                        <li><a href="{% url 'contact_us' %}">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                {% comment %} Contact{% endcomment %}
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p>support@jltfragrances.com</p>
+                    <p>+91 98765 43210</p>
+                    <p>Luxury Perfume Studio, India</p>
+                </div>
+        
+                {% comment %} Social {% endcomment %}
+                <div class='footer-section'>
+                    <h3>Follow Us</h3>
+                    <a href='#' class='social-link'>Instagram</a>
+                </div>
+            
+            </div>
+
+
+            {% comment %} Bottom {% endcomment %}
+            <div class="footer-bottom">
+                <p>© 2026 JLT Fragrances. All rights reserved.</p>
+            </div>
+        </footer>
+
+</body>
+</html>
