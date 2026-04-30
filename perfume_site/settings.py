@@ -9,42 +9,39 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
 import importlib.util
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+# ========================
+# CORE SETTINGS
+# ========================
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-+q^az9zk)9jty-k471rg0f)g=a759nmy4z57%+7@ne=ugft7*!' )
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-xksct+1jg@aj_i#lmz$v-oz@*6g1py+3)+jg!9^e4_5qw*p_v5')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
-
-default_allowed_hosts = {"127.0.0.1", "localhost", "testserver"}
-configured_allowed_hosts = {
+ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,testserver').split(',')
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
     if host.strip()
-}
-ALLOWED_HOSTS = sorted(default_allowed_hosts | configured_allowed_hosts)
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 
 HAS_WHITENOISE = importlib.util.find_spec('whitenoise') is not None
 HAS_DJ_DATABASE_URL = importlib.util.find_spec('dj_database_url') is not None
 
-
-# Application definition
-
+# ========================
+# APPS
+# ========================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,13 +50,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+
     'store',
 ]
 
+# ========================
+# MIDDLEWARE
+# ========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     *(['whitenoise.middleware.WhiteNoiseMiddleware'] if HAS_WHITENOISE else []),
@@ -74,6 +76,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'perfume_site.urls'
 
+# ========================
+# TEMPLATES
+# ========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -92,10 +97,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'perfume_site.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# ========================
+# DATABASE
+# ========================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -105,32 +109,15 @@ DATABASES = {
 
 if HAS_DJ_DATABASE_URL and os.getenv('DATABASE_URL'):
     import dj_database_url
-
     DATABASES['default'] = dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         ssl_require=not DEBUG,
     )
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
+# ========================
+# AUTH
+# ========================
 AUTHENTICATION_BACKENDS = [
     'store.backends.EmailBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -145,98 +132,61 @@ LOGOUT_REDIRECT_URL = 'login'
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_LOGOUT_ON_GET = False
-ACCOUNT_ADAPTER = 'store.adapters.LuxuryAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'store.adapters.LuxurySocialAccountAdapter'
-SOCIALACCOUNT_LOGIN_ON_GET = True
 
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-    }
-}
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'Asia/Kolkata'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
+# ========================
+# STATIC & MEDIA
+# ========================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = []
-configured_email_backend = os.getenv('EMAIL_BACKEND', '').strip()
-email_host = os.getenv('EMAIL_HOST', '').strip()
-
-if configured_email_backend:
-    EMAIL_BACKEND = configured_email_backend
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
-
-if DEBUG and EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend' and not email_host:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-EMAIL_HOST = email_host or 'localhost'
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '25'))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'False').lower() == 'true'
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '20'))
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'JLT Fragrances <noreply@jltfragrances.com>')
-OWNER_NOTIFICATION_EMAIL = os.getenv('OWNER_NOTIFICATION_EMAIL', '')
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'},
-    },
-    'loggers': {
-        'store': {
-            'handlers': ['console'],
-            'level': os.getenv('STORE_LOG_LEVEL', 'INFO'),
-            'propagate': False,
-        },
-    },
-}
 
 if HAS_WHITENOISE:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'  # ⚠️ use Cloudinary later
 
+# ========================
+# EMAIL
+# ========================
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# ========================
+# SECURITY
+# ========================
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = os.getenv('DJANGO_SECURE_SSL_REDIRECT', 'False').lower() == 'true'
-SECURE_HSTS_SECONDS = int(os.getenv('DJANGO_SECURE_HSTS_SECONDS', '0'))
-SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False').lower() == 'true'
-SECURE_HSTS_PRELOAD = os.getenv('DJANGO_SECURE_HSTS_PRELOAD', 'False').lower() == 'true'
 
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
-RAZORPAY_CURRENCY = os.getenv('RAZORPAY_CURRENCY', 'INR')
-SITE_BASE_URL = os.getenv('SITE_BASE_URL', 'http://127.0.0.1:8000')
-brand_logo_url = os.getenv('BRAND_LOGO_URL', '').strip()
-BRAND_LOGO_URL = brand_logo_url if brand_logo_url.startswith(('http://', 'https://')) else ''
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
+SECURE_SSL_REDIRECT = os.getenv('DJANGO_SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+
+# ========================
+# RAZORPAY
+# ========================
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+RAZORPAY_CURRENCY = 'INR'
+
+# ========================
+# SITE CONFIG
+# ========================
+SITE_BASE_URL = os.getenv('SITE_BASE_URL')
+
+# ========================
+# TELEGRAM
+# ========================
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
+# ========================
+# DEFAULTS
+# ========================
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
