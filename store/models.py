@@ -6,6 +6,8 @@ from django.db import models
 class Product(models.Model):
     inspired_by = models.CharField(max_length=200)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
+    is_bestseller = models.BooleanField(default=False)
+    stock = models.PositiveIntegerField(default=0)
 
     category = models.CharField(max_length=50)
     brand = models.CharField(max_length=100)
@@ -54,6 +56,43 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"{self.product.inspired_by} gallery image {self.pk}"
+
+
+class HeroSection(models.Model):
+    image = models.ImageField(upload_to="hero/")
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at",)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.is_active:
+            HeroSection.objects.exclude(pk=self.pk).update(is_active=False)
+
+    def __str__(self):
+        return "Active Hero Image" if self.is_active else f"Hero Image #{self.pk}"
+
+
+class AboutSection(models.Model):
+    ABOUT = "about"
+    LUXURY = "luxury"
+    SECTION_CHOICES = [
+        (ABOUT, "About"),
+        (LUXURY, "Luxury"),
+    ]
+
+    section_type = models.CharField(max_length=20, choices=SECTION_CHOICES, unique=True)
+    title = models.CharField(max_length=200, blank=True)
+    image = models.ImageField(upload_to="content/", blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("section_type",)
+
+    def __str__(self):
+        return f"{self.get_section_type_display()} Section"
 
 
 # ================= VARIANT =================

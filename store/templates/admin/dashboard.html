@@ -1,0 +1,24 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Overview</p>
+    <h1>Dashboard</h1>
+    <p>Live store totals for JLT Fragrances.</p>
+</section>
+
+<section class="custom-admin-stat-grid">
+    <article class="custom-admin-card custom-admin-stat-card">
+        <span>Total Orders</span>
+        <strong>{{ total_orders }}</strong>
+    </article>
+    <article class="custom-admin-card custom-admin-stat-card">
+        <span>Total Users</span>
+        <strong>{{ total_users }}</strong>
+    </article>
+    <article class="custom-admin-card custom-admin-stat-card custom-admin-gold-card">
+        <span>Total Revenue</span>
+        <strong>₹{{ total_revenue|floatformat:2 }}</strong>
+    </article>
+</section>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Order #{{ order.id }}</p>
+    <h1>Order Details</h1>
+    <p>{{ order.created_at|date:"d M Y, h:i A" }}</p>
+</section>
+
+<section class="custom-admin-detail-grid">
+    <article class="custom-admin-card">
+        <h2>Customer</h2>
+        <dl class="custom-admin-detail-list">
+            <div><dt>Name</dt><dd>{{ order.full_name }}</dd></div>
+            <div><dt>Email</dt><dd>{{ order.email|default:order.user.email }}</dd></div>
+            <div><dt>Phone</dt><dd>{{ order.phone_number }}</dd></div>
+            <div><dt>Address</dt><dd>{{ order.address_line }}{% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}, {{ order.city }}, {{ order.state }} {{ order.pincode }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="custom-admin-card">
+        <h2>Item</h2>
+        <dl class="custom-admin-detail-list">
+            <div><dt>Product</dt><dd>{% if order.product %}{{ order.product.inspired_by }}{% else %}Fragrance Order{% endif %}</dd></div>
+            <div><dt>Variant</dt><dd>{% if order.variant %}{{ order.variant.size }}{% else %}N/A{% endif %}</dd></div>
+            <div><dt>Quantity</dt><dd>{{ order.quantity }}</dd></div>
+            <div><dt>Total</dt><dd>₹{{ order.total_amount|floatformat:2 }}</dd></div>
+        </dl>
+    </article>
+
+    <article class="custom-admin-card">
+        <h2>Payment</h2>
+        <dl class="custom-admin-detail-list">
+            <div><dt>Method</dt><dd>{{ order.payment_method }}</dd></div>
+            <div><dt>Status</dt><dd>{{ order.payment_status }}</dd></div>
+            <div><dt>Paid</dt><dd>{{ order.is_paid|yesno:"Yes,No" }}</dd></div>
+            <div><dt>Razorpay ID</dt><dd>{{ order.razorpay_payment_id|default:"N/A" }}</dd></div>
+        </dl>
+    </article>
+</section>
+{% endblock %}

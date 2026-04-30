@@ -1,0 +1,73 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Orders</p>
+    <h1>All Orders</h1>
+    <p>Review every order placed through the storefront.</p>
+</section>
+
+<form method="get" class="custom-admin-toolbar">
+    <label class="custom-admin-search">
+        <span>Search orders</span>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Customer, email, product, phone, payment ID">
+    </label>
+    <label class="custom-admin-filter">
+        <span>Payment</span>
+        <select name="payment_status">
+            <option value="">All</option>
+            {% for value, label in payment_status_choices %}
+                <option value="{{ value }}" {% if payment_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="custom-admin-filter">
+        <span>Status</span>
+        <select name="status">
+            <option value="">All</option>
+            {% for value, label in order_status_choices %}
+                <option value="{{ value }}" {% if order_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit">Apply</button>
+</form>
+
+<section class="custom-admin-card custom-admin-table-card">
+    <div class="custom-admin-table-wrap">
+        <table class="custom-admin-table">
+            <thead>
+                <tr>
+                    <th><a href="?sort={% if current_sort == 'user' %}-user{% else %}user{% endif %}">User</a></th>
+                    <th><a href="?sort={% if current_sort == 'email' %}-email{% else %}email{% endif %}">Email</a></th>
+                    <th>Items</th>
+                    <th>Qty</th>
+                    <th><a href="?sort={% if current_sort == 'total' %}-total{% else %}total{% endif %}">Total</a></th>
+                    <th><a href="?sort={% if current_sort == 'payment' %}-payment{% else %}payment{% endif %}">Payment</a></th>
+                    <th><a href="?sort={% if current_sort == 'date' %}-date{% else %}date{% endif %}">Date</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr onclick="window.location='{% url 'admin_order_detail' order.id %}'">
+                        <td>{{ order.full_name|default:order.user.username }}</td>
+                        <td>{{ order.email|default:order.user.email }}</td>
+                        <td>
+                            {% if order.product %}{{ order.product.inspired_by }}{% else %}Fragrance Order{% endif %}
+                            {% if order.variant %}<small>{{ order.variant.size }}</small>{% endif %}
+                        </td>
+                        <td>{{ order.quantity }}</td>
+                        <td>₹{{ order.total_amount|floatformat:2 }}</td>
+                        <td><span class="custom-admin-pill">{{ order.payment_status }}</span></td>
+                        <td>{{ order.created_at|date:"d M Y" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">No orders yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

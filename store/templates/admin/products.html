@@ -1,0 +1,84 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Catalogue</p>
+    <h1>Products</h1>
+    <p>Manage fragrances, stock, variants, and gallery images.</p>
+</section>
+
+<form method="get" class="custom-admin-toolbar">
+    <label class="custom-admin-search">
+        <span>Search products</span>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search name, brand, category">
+    </label>
+    <label class="custom-admin-filter">
+        <span>Category</span>
+        <select name="category">
+            <option value="">All</option>
+            {% for item in categories %}
+                <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label class="custom-admin-filter">
+        <span>Bestseller</span>
+        <select name="bestseller">
+            <option value="">All</option>
+            <option value="yes" {% if bestseller == "yes" %}selected{% endif %}>Yes</option>
+            <option value="no" {% if bestseller == "no" %}selected{% endif %}>No</option>
+        </select>
+    </label>
+    <button type="submit">Apply</button>
+    <a class="custom-admin-submit custom-admin-top-action" href="{% url 'admin_product_add' %}">Add Product</a>
+</form>
+
+<section class="custom-admin-card custom-admin-table-card">
+    <div class="custom-admin-table-wrap">
+        <table class="custom-admin-table">
+            <thead>
+                <tr>
+                    <th><a href="?sort={% if current_sort == 'name' %}-name{% else %}name{% endif %}">Product</a></th>
+                    <th><a href="?sort={% if current_sort == 'brand' %}-brand{% else %}brand{% endif %}">Brand</a></th>
+                    <th><a href="?sort={% if current_sort == 'category' %}-category{% else %}category{% endif %}">Category</a></th>
+                    <th>Variants</th>
+                    <th>Stock</th>
+                    <th><a href="?sort={% if current_sort == 'bestseller' %}-bestseller{% else %}bestseller{% endif %}">Bestseller</a></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.inspired_by }}</td>
+                        <td>{{ product.brand }}</td>
+                        <td>{{ product.category }}</td>
+                        <td>
+                            {% for variant in product.variants.all %}
+                                <small>{{ variant.size }} - ₹{{ variant.price }}</small>
+                            {% empty %}
+                                <small>No variants</small>
+                            {% endfor %}
+                        </td>
+                        <td>{{ product.stock }}</td>
+                        <td>{{ product.is_bestseller|yesno:"Yes,No" }}</td>
+                        <td>
+                            <div class="custom-admin-table-actions">
+                                <a href="{% url 'admin_product_edit' product.id %}">Edit</a>
+                                <form method="post" action="{% url 'admin_product_delete' product.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Delete this product?')">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">No products found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

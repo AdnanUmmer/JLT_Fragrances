@@ -1,0 +1,51 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Content</p>
+    <h1>Content Management</h1>
+    <p>Update homepage editorial images and the closing luxury statement.</p>
+</section>
+
+<section class="custom-admin-detail-grid custom-admin-detail-grid-two">
+    <article class="custom-admin-card">
+        <h2>About Us Section</h2>
+        {% if about_section.image %}
+            <img class="custom-admin-hero-preview" src="{{ about_section.image.url }}" alt="About section image">
+        {% else %}
+            <p class="custom-admin-muted">No custom about image is set. The storefront fallback image will be used.</p>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" class="custom-admin-form custom-admin-stacked-form">
+            {% csrf_token %}
+            <input type="hidden" name="section_type" value="about">
+            <label>
+                <span>About image</span>
+                <input type="file" name="image" accept="image/*">
+            </label>
+            <button type="submit">Update About Section</button>
+        </form>
+    </article>
+
+    <article class="custom-admin-card">
+        <h2>Luxury Closing Section</h2>
+        {% if luxury_section.image %}
+            <img class="custom-admin-hero-preview" src="{{ luxury_section.image.url }}" alt="Luxury section image">
+        {% else %}
+            <p class="custom-admin-muted">No custom luxury image is set. The storefront fallback image will be used.</p>
+        {% endif %}
+        <form method="post" enctype="multipart/form-data" class="custom-admin-form custom-admin-stacked-form">
+            {% csrf_token %}
+            <input type="hidden" name="section_type" value="luxury">
+            <label>
+                <span>Title</span>
+                <input type="text" name="title" value="{{ luxury_section.title|default:'Luxury is not seen first. It is felt.' }}" maxlength="200">
+            </label>
+            <label>
+                <span>Luxury image</span>
+                <input type="file" name="image" accept="image/*">
+            </label>
+            <button type="submit">Update Luxury Section</button>
+        </form>
+    </article>
+</section>
+{% endblock %}

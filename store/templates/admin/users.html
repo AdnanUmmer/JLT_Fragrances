@@ -1,0 +1,48 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Customers</p>
+    <h1>Users</h1>
+    <p>Customer contact and saved address overview.</p>
+</section>
+
+<form method="get" class="custom-admin-toolbar">
+    <label class="custom-admin-search">
+        <span>Search users</span>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search name, email, or phone">
+    </label>
+    <button type="submit">Search</button>
+</form>
+
+<section class="custom-admin-card custom-admin-table-card">
+    <div class="custom-admin-table-wrap">
+        <table class="custom-admin-table">
+            <thead>
+                <tr>
+                    <th><a href="?sort={% if current_sort == 'name' %}-name{% else %}name{% endif %}">Name</a></th>
+                    <th><a href="?sort={% if current_sort == 'email' %}-email{% else %}email{% endif %}">Email</a></th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.phone }}</td>
+                        <td>{{ user.address }}</td>
+                        <td><a class="custom-admin-table-link" href="{{ user.edit_url }}">Edit</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">No users found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

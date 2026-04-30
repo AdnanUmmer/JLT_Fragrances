@@ -1,0 +1,145 @@
+{% extends "custom_admin/base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Catalogue</p>
+    <h1>{% if product %}Edit Product{% else %}Add Product{% endif %}</h1>
+    <p>Manage product details, pricing variants, stock, and images.</p>
+</section>
+
+<form method="post" enctype="multipart/form-data" class="custom-admin-card custom-admin-editor-form">
+    {% csrf_token %}
+    <div class="custom-admin-form-actions-top">
+        <a class="custom-admin-secondary-action" href="{% url 'admin_products' %}">Back to Products</a>
+        <button type="submit" class="custom-admin-submit">Save Product</button>
+    </div>
+
+    <section class="custom-admin-form-section">
+        <h2>Product Details</h2>
+        <div class="custom-admin-field-grid">
+            <label>
+                <span>Name</span>
+                <input type="text" name="inspired_by" value="{{ product.inspired_by|default:'' }}" required>
+            </label>
+            <label>
+                <span>Brand</span>
+                <input type="text" name="brand" value="{{ product.brand|default:'' }}" required>
+            </label>
+            <label>
+                <span>Category</span>
+                <input type="text" name="category" value="{{ product.category|default:'' }}" required>
+            </label>
+            <label>
+                <span>Stock</span>
+                <input type="number" name="stock" value="{{ product.stock|default:0 }}" min="0">
+            </label>
+            <label class="custom-admin-check-row">
+                <input type="checkbox" name="is_bestseller" {% if product and product.is_bestseller %}checked{% endif %}>
+                <span>Bestseller</span>
+            </label>
+            <label class="custom-admin-field-full">
+                <span>Description</span>
+                <textarea name="description" rows="5">{{ product.description|default:'' }}</textarea>
+            </label>
+            <label>
+                <span>Top Notes</span>
+                <textarea name="top_note" rows="3">{{ product.top_note|default:'' }}</textarea>
+            </label>
+            <label>
+                <span>Middle Notes</span>
+                <textarea name="middle_note" rows="3">{{ product.middle_note|default:'' }}</textarea>
+            </label>
+            <label>
+                <span>Base Notes</span>
+                <textarea name="base_note" rows="3">{{ product.base_note|default:'' }}</textarea>
+            </label>
+            <label>
+                <span>Occasion</span>
+                <input type="text" name="occasion" value="{{ product.occasion|default:'' }}">
+            </label>
+        </div>
+    </section>
+
+    <section class="custom-admin-form-section">
+        <h2>Images</h2>
+        <div class="custom-admin-field-grid">
+            <label>
+                <span>Primary Image</span>
+                <input type="file" name="image" accept="image/*">
+            </label>
+            <label>
+                <span>Gallery Images</span>
+                <input type="file" name="gallery_images" accept="image/*" multiple>
+            </label>
+        </div>
+        {% if product %}
+            <div class="custom-admin-image-grid">
+                {% if product.image %}
+                    <figure>
+                        <img src="{{ product.image.url }}" alt="{{ product.inspired_by }}">
+                        <figcaption>Primary</figcaption>
+                    </figure>
+                {% endif %}
+                {% for image in product.extra_images.all %}
+                    <label class="custom-admin-gallery-thumb">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.inspired_by }}">
+                        <span><input type="checkbox" name="delete_image" value="{{ image.id }}"> Delete</span>
+                    </label>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="custom-admin-form-section">
+        <h2>Variants</h2>
+        <div class="custom-admin-variant-list" data-variant-list>
+            {% if product and product.variants.all %}
+                {% for variant in product.variants.all %}
+                    <div class="custom-admin-variant-row">
+                        <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                        <label><span>Size</span><input type="text" name="variant_size" value="{{ variant.size }}"></label>
+                        <label><span>Price</span><input type="number" name="variant_price" value="{{ variant.price }}" min="1"></label>
+                        <label class="custom-admin-check-row"><input type="checkbox" name="delete_variant" value="{{ variant.id }}"><span>Delete</span></label>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="custom-admin-variant-row">
+                    <input type="hidden" name="variant_id" value="">
+                    <label><span>Size</span><input type="text" name="variant_size" value="30ml"></label>
+                    <label><span>Price</span><input type="number" name="variant_price" value="499" min="1"></label>
+                    <span></span>
+                </div>
+            {% endif %}
+        </div>
+        <button type="button" class="custom-admin-secondary-action" data-add-variant>Add Variant</button>
+    </section>
+</form>
+
+<template id="variant-row-template">
+    <div class="custom-admin-variant-row">
+        <input type="hidden" name="variant_id" value="">
+        <label><span>Size</span><input type="text" name="variant_size" placeholder="100ml"></label>
+        <label><span>Price</span><input type="number" name="variant_price" min="1" placeholder="1299"></label>
+        <button type="button" class="custom-admin-remove-row">Remove</button>
+    </div>
+</template>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const list = document.querySelector("[data-variant-list]");
+        const addButton = document.querySelector("[data-add-variant]");
+        const template = document.getElementById("variant-row-template");
+
+        addButton?.addEventListener("click", () => {
+            list.appendChild(template.content.cloneNode(true));
+        });
+
+        list?.addEventListener("click", (event) => {
+            if (event.target.matches(".custom-admin-remove-row")) {
+                event.target.closest(".custom-admin-variant-row")?.remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

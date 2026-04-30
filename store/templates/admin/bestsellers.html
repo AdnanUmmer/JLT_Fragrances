@@ -1,0 +1,73 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Featured Selection</p>
+    <h1>Bestsellers</h1>
+    <p>Select up to 4 products for the homepage featured section.</p>
+</section>
+
+<form method="get" class="custom-admin-toolbar">
+    <label class="custom-admin-search">
+        <span>Search products</span>
+        <input type="search" name="q" value="{{ search_query }}" placeholder="Search by name, brand, or category">
+    </label>
+    <button type="submit">Search</button>
+</form>
+
+<form method="post" class="custom-admin-card custom-admin-product-form" data-bestseller-form>
+    {% csrf_token %}
+    {% for product in hidden_selected_products %}
+        <input type="checkbox" name="products" value="{{ product.id }}" checked hidden data-bestseller-checkbox data-hidden-bestseller>
+    {% endfor %}
+    <div class="custom-admin-form-head">
+        <p><strong data-bestseller-count>{{ selected_count }}</strong> of 4 selected</p>
+        <button type="submit" class="custom-admin-submit">Update Bestsellers</button>
+    </div>
+    <div class="custom-admin-product-grid">
+        {% for product in products %}
+            <label class="custom-admin-product-option">
+                <input type="checkbox" name="products" value="{{ product.id }}" {% if product.is_bestseller %}checked{% endif %} data-bestseller-checkbox>
+                <span class="custom-admin-heart" aria-hidden="true">♥</span>
+                <span>
+                    <strong>{{ product.inspired_by }}</strong>
+                    <small>{{ product.brand }} · {{ product.category }}</small>
+                </span>
+            </label>
+        {% empty %}
+            <p class="custom-admin-muted">No products found.</p>
+        {% endfor %}
+    </div>
+</form>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const checkboxes = Array.from(document.querySelectorAll("[data-bestseller-checkbox]"));
+        const countEl = document.querySelector("[data-bestseller-count]");
+        const maxSelected = 4;
+
+        function syncBestsellerState() {
+            const selectedCount = checkboxes.filter((box) => box.checked).length;
+            if (countEl) countEl.textContent = selectedCount;
+
+            checkboxes.forEach((box) => {
+                const option = box.closest(".custom-admin-product-option");
+                option?.classList.toggle("is-selected", box.checked);
+                if (!box.hasAttribute("data-hidden-bestseller")) {
+                    box.disabled = !box.checked && selectedCount >= maxSelected;
+                }
+            });
+        }
+
+        checkboxes.forEach((box) => {
+            box.addEventListener("change", () => {
+                if (box.checked && checkboxes.filter((item) => item.checked).length > maxSelected) {
+                    box.checked = false;
+                }
+                syncBestsellerState();
+            });
+        });
+
+        syncBestsellerState();
+    });
+</script>
+{% endblock %}

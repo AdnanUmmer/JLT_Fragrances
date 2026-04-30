@@ -104,12 +104,12 @@
 
                 <div class="checkout-section-title auth-field-full">Payment Method</div>
                 <div class="auth-field auth-field-full">
-                    <label for="{{ form.payment_method.id_for_label }}">Choose Payment</label>
+                    <label for="{{ form.payment_method.id_for_label }}">Secure Payment</label>
                     {{ form.payment_method }}
                     <button type="button" class="razorpay-btn" data-razorpay-button>
                         <span>Pay Securely with Razorpay</span>
                     </button>
-                    <p class="checkout-helper-text">Select any prepaid option to enable Razorpay. Cash on Delivery continues through the standard order button below.</p>
+                    <p class="checkout-helper-text">All orders are completed through Razorpay secure payment.</p>
                 </div>
 
                 <div class="auth-field auth-field-full">
@@ -139,12 +139,6 @@
                     </a>
                 </div>
 
-                <div class="auth-field auth-field-full">
-                    <button type="submit" class="luxury-primary-btn full-width" data-loading-button>
-                        <span>Place Order</span>
-                        <span class="button-spinner" aria-hidden="true"></span>
-                    </button>
-                </div>
             </form>
         </div>
 

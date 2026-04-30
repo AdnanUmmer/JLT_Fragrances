@@ -8,13 +8,14 @@ from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user_model, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.views import PasswordResetView
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import JsonResponse
+from django.db.models import Q, Sum
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse, reverse_lazy
 from django.utils import timezone
@@ -30,7 +31,7 @@ from .forms import (
     ProfileForm,
     SignupForm,
 )
-from .models import Order, Product, SavedAddress, Variant, WishlistItem
+from .models import AboutSection, HeroSection, Order, Product, ProductImage, SavedAddress, Variant, WishlistItem
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -276,7 +277,7 @@ def _default_checkout_initial(user):
     initial = {
         "email": user.email,
         "country": "India",
-        "payment_method": "COD",
+        "payment_method": "Razorpay",
         "shipping_method": "Standard",
     }
     default_address = user.saved_addresses.filter(is_default=True).first()
@@ -468,6 +469,439 @@ def _send_owner_notifications(orders):
     _send_telegram_notification(message_body, order_ids)
 
 
+def _is_custom_admin(user):
+    return user.is_active and user.is_superuser
+
+
+def admin_login(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("admin_dashboard")
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+
+        if user and user.is_superuser:
+            login(request, user)
+            return redirect("admin_dashboard")
+
+        messages.error(request, "Only superuser accounts can access the admin panel.")
+
+    return render(request, "custom_admin/login.html")
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_dashboard(request):
+    revenue = Order.objects.aggregate(total=Sum("total_amount"))["total"] or Decimal("0.00")
+
+    return render(
+        request,
+        "admin/dashboard.html",
+        {
+            "total_orders": Order.objects.count(),
+            "total_users": User.objects.count(),
+            "total_revenue": revenue,
+        },
+    )
+
+
+def _get_sort(request, allowed, default):
+    requested = request.GET.get("sort", default)
+    return requested if requested in allowed else default
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_orders(request):
+    allowed_sorts = {
+        "user": "full_name",
+        "-user": "-full_name",
+        "email": "email",
+        "-email": "-email",
+        "total": "total_amount",
+        "-total": "-total_amount",
+        "payment": "payment_status",
+        "-payment": "-payment_status",
+        "date": "created_at",
+        "-date": "-created_at",
+    }
+    sort = _get_sort(request, allowed_sorts, "-date")
+    orders = Order.objects.select_related("user", "product", "variant")
+    search_query = request.GET.get("q", "").strip()
+    payment_status = request.GET.get("payment_status", "").strip()
+    order_status = request.GET.get("status", "").strip()
+
+    if search_query:
+        orders = orders.filter(
+            Q(full_name__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(phone_number__icontains=search_query)
+            | Q(product__inspired_by__icontains=search_query)
+            | Q(razorpay_payment_id__icontains=search_query)
+            | Q(razorpay_order_id__icontains=search_query)
+        )
+    if payment_status:
+        orders = orders.filter(payment_status=payment_status)
+    if order_status:
+        orders = orders.filter(status=order_status)
+
+    orders = orders.order_by(allowed_sorts[sort])
+    return render(
+        request,
+        "admin/orders.html",
+        {
+            "orders": orders,
+            "current_sort": sort,
+            "search_query": search_query,
+            "payment_status": payment_status,
+            "order_status": order_status,
+            "payment_status_choices": Order.PAYMENT_STATUS_CHOICES,
+            "order_status_choices": Order.STATUS_CHOICES,
+        },
+    )
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_order_detail(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_related("user", "product", "variant"),
+        id=order_id,
+    )
+    return render(request, "admin/order_detail.html", {"order": order})
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_users(request):
+    allowed_sorts = {
+        "name": "first_name",
+        "-name": "-first_name",
+        "email": "email",
+        "-email": "-email",
+        "date": "date_joined",
+        "-date": "-date_joined",
+    }
+    sort = _get_sort(request, allowed_sorts, "-date")
+    users = User.objects.prefetch_related("saved_addresses").select_related("profile")
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        users = users.filter(
+            Q(first_name__icontains=search_query)
+            | Q(last_name__icontains=search_query)
+            | Q(username__icontains=search_query)
+            | Q(email__icontains=search_query)
+            | Q(profile__phone_number__icontains=search_query)
+        )
+    users = users.order_by(allowed_sorts[sort])
+    user_rows = []
+
+    for user in users:
+        address = user.saved_addresses.first()
+        try:
+            profile_phone = user.profile.phone_number
+        except ObjectDoesNotExist:
+            profile_phone = ""
+
+        address_text = "N/A"
+        if address:
+            address_text = ", ".join(
+                part
+                for part in (
+                    address.address_line,
+                    address.city,
+                    address.state,
+                    address.pincode,
+                )
+                if part
+            )
+
+        user_rows.append(
+            {
+                "name": user.get_full_name() or user.username,
+                "email": user.email or "N/A",
+                "phone": profile_phone or (address.phone_number if address else "") or "N/A",
+                "address": address_text,
+                "edit_url": reverse("admin_user_edit", args=[user.id]),
+            }
+        )
+
+    return render(
+        request,
+        "admin/users.html",
+        {"users": user_rows, "current_sort": sort, "search_query": search_query},
+    )
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_user_edit(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    try:
+        profile = user.profile
+    except ObjectDoesNotExist:
+        profile = None
+
+    if request.method == "POST":
+        user.first_name = request.POST.get("first_name", "").strip()
+        user.last_name = request.POST.get("last_name", "").strip()
+        user.email = request.POST.get("email", "").strip()
+        user.username = request.POST.get("username", "").strip() or user.email or user.username
+        user.is_active = request.POST.get("is_active") == "on"
+        user.save(update_fields=["first_name", "last_name", "email", "username", "is_active"])
+
+        if profile:
+            profile.phone_number = request.POST.get("phone_number", "").strip()
+            profile.receive_offers = request.POST.get("receive_offers") == "on"
+            profile.save(update_fields=["phone_number", "receive_offers"])
+
+        messages.success(request, "User updated.")
+        return redirect("admin_users")
+
+    return render(request, "admin/user_form.html", {"edited_user": user, "profile": profile})
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_products(request):
+    allowed_sorts = {
+        "name": "inspired_by",
+        "-name": "-inspired_by",
+        "brand": "brand",
+        "-brand": "-brand",
+        "category": "category",
+        "-category": "-category",
+        "bestseller": "-is_bestseller",
+        "-bestseller": "is_bestseller",
+    }
+    sort = _get_sort(request, allowed_sorts, "name")
+    products = Product.objects.prefetch_related("variants")
+    search_query = request.GET.get("q", "").strip()
+    category = request.GET.get("category", "").strip()
+    bestseller = request.GET.get("bestseller", "").strip()
+
+    if search_query:
+        products = products.filter(
+            Q(inspired_by__icontains=search_query)
+            | Q(brand__icontains=search_query)
+            | Q(category__icontains=search_query)
+            | Q(description__icontains=search_query)
+        )
+    if category:
+        products = products.filter(category=category)
+    if bestseller in {"yes", "no"}:
+        products = products.filter(is_bestseller=(bestseller == "yes"))
+
+    categories = Product.objects.order_by("category").values_list("category", flat=True).distinct()
+    products = products.order_by(allowed_sorts[sort])
+    return render(
+        request,
+        "admin/products.html",
+        {
+            "products": products,
+            "current_sort": sort,
+            "search_query": search_query,
+            "category": category,
+            "bestseller": bestseller,
+            "categories": categories,
+        },
+    )
+
+
+def _parse_admin_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _save_product_from_admin_request(request, product=None):
+    product = product or Product()
+    is_new_product = product.pk is None
+    product.inspired_by = request.POST.get("inspired_by", "").strip()
+    product.brand = request.POST.get("brand", "").strip()
+    product.category = request.POST.get("category", "").strip()
+    product.description = request.POST.get("description", "").strip()
+    product.top_note = request.POST.get("top_note", "").strip()
+    product.middle_note = request.POST.get("middle_note", "").strip()
+    product.base_note = request.POST.get("base_note", "").strip()
+    product.occasion = request.POST.get("occasion", "").strip()
+    product.stock = max(0, _parse_admin_int(request.POST.get("stock"), 0))
+    product.is_bestseller = request.POST.get("is_bestseller") == "on"
+
+    primary_image = request.FILES.get("image")
+    if primary_image:
+        product.image = primary_image
+    product.save()
+
+    seen_variant_ids = set()
+    submitted_valid_variants = False
+    variant_ids = request.POST.getlist("variant_id")
+    sizes = request.POST.getlist("variant_size")
+    prices = request.POST.getlist("variant_price")
+    delete_variant_ids = set(request.POST.getlist("delete_variant"))
+
+    for index, size in enumerate(sizes):
+        size = size.strip()
+        price = _parse_admin_int(prices[index] if index < len(prices) else None, 0)
+        variant_id = variant_ids[index] if index < len(variant_ids) else ""
+        if variant_id in delete_variant_ids:
+            continue
+        if not size or price <= 0:
+            continue
+
+        variant = product.variants.filter(id=variant_id).first() if variant_id else Variant(product=product)
+        variant.size = size
+        variant.price = price
+        variant.save()
+        seen_variant_ids.add(variant.id)
+        submitted_valid_variants = True
+
+    if delete_variant_ids:
+        product.variants.filter(id__in=delete_variant_ids).delete()
+
+    if is_new_product and submitted_valid_variants:
+        product.variants.exclude(id__in=seen_variant_ids).delete()
+
+    gallery_images = request.FILES.getlist("gallery_images")
+    current_count = product.extra_images.count()
+    for offset, image in enumerate(gallery_images, start=1):
+        ProductImage.objects.create(
+            product=product,
+            image=image,
+            alt_text=product.inspired_by,
+            sort_order=current_count + offset,
+        )
+
+    delete_image_ids = request.POST.getlist("delete_image")
+    if delete_image_ids:
+        product.extra_images.filter(id__in=delete_image_ids).delete()
+
+    return product
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_product_add(request):
+    if request.method == "POST":
+        product = _save_product_from_admin_request(request)
+        messages.success(request, "Product created.")
+        return redirect("admin_product_edit", product_id=product.id)
+
+    return render(request, "admin/product_form.html", {"product": None})
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_product_edit(request, product_id):
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants", "extra_images"),
+        id=product_id,
+    )
+    if request.method == "POST":
+        _save_product_from_admin_request(request, product)
+        messages.success(request, "Product updated.")
+        return redirect("admin_product_edit", product_id=product.id)
+
+    return render(request, "admin/product_form.html", {"product": product})
+
+
+@require_POST
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_product_delete(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    product.delete()
+    messages.success(request, "Product deleted.")
+    return redirect("admin_products")
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_hero(request):
+    hero = HeroSection.objects.filter(is_active=True).first()
+
+    if request.method == "POST":
+        image = request.FILES.get("image")
+        if image:
+            HeroSection.objects.create(image=image, is_active=True)
+            messages.success(request, "Hero image updated.")
+            return redirect("admin_hero")
+        messages.error(request, "Please choose an image to upload.")
+
+    return render(request, "admin/hero.html", {"hero": hero})
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_bestsellers(request):
+    search_query = request.GET.get("q", "").strip()
+    products = Product.objects.order_by("inspired_by")
+    if search_query:
+        products = products.filter(
+            Q(inspired_by__icontains=search_query)
+            | Q(brand__icontains=search_query)
+            | Q(category__icontains=search_query)
+        )
+
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("products")
+        unique_ids = list(dict.fromkeys(selected_ids))
+        if len(unique_ids) > 4:
+            messages.error(request, "Please select no more than 4 bestseller products.")
+        else:
+            Product.objects.update(is_bestseller=False)
+            Product.objects.filter(id__in=unique_ids).update(is_bestseller=True)
+            messages.success(request, "Bestsellers updated.")
+            return redirect("admin_bestsellers")
+
+    product_ids = list(products.values_list("id", flat=True))
+    hidden_selected_products = Product.objects.filter(is_bestseller=True).exclude(id__in=product_ids)
+    selected_count = Product.objects.filter(is_bestseller=True).count()
+    return render(
+        request,
+        "admin/bestsellers.html",
+        {
+            "products": products,
+            "hidden_selected_products": hidden_selected_products,
+            "search_query": search_query,
+            "selected_count": selected_count,
+        },
+    )
+
+
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_content(request):
+    about_section, _ = AboutSection.objects.get_or_create(section_type=AboutSection.ABOUT)
+    luxury_section, _ = AboutSection.objects.get_or_create(
+        section_type=AboutSection.LUXURY,
+        defaults={"title": "Luxury is not seen first. It is felt."},
+    )
+
+    if request.method == "POST":
+        section_type = request.POST.get("section_type")
+        section = {AboutSection.ABOUT: about_section, AboutSection.LUXURY: luxury_section}.get(section_type)
+
+        if not section:
+            messages.error(request, "Invalid content section.")
+            return redirect("admin_content")
+
+        section.title = request.POST.get("title", "").strip()
+        image = request.FILES.get("image")
+        if image:
+            section.image = image
+        section.save()
+        messages.success(request, "Content section updated.")
+        return redirect("admin_content")
+
+    return render(
+        request,
+        "admin/content.html",
+        {
+            "about_section": about_section,
+            "luxury_section": luxury_section,
+        },
+    )
+
+
+@require_POST
+@user_passes_test(_is_custom_admin, login_url="admin_login")
+def admin_logout(request):
+    logout(request)
+    return redirect("admin_login")
+
+
 def _place_orders_for_payload(user, payload, payment_meta=None):
     address_data = payload["address"]
     save_address = payload.get("save_address", False)
@@ -530,12 +964,21 @@ def _place_orders_for_payload(user, payload, payment_meta=None):
 
 
 def home(request):
-    products = Product.objects.prefetch_related("variants")[:5]
+    products = list(Product.objects.filter(is_bestseller=True).prefetch_related("variants")[:4])
+    if len(products) < 4:
+        selected_ids = [product.id for product in products]
+        products.extend(
+            Product.objects.exclude(id__in=selected_ids).prefetch_related("variants")[: 4 - len(products)]
+        )
+
     return render(
         request,
         "store/home.html",
         {
             "products": products,
+            "hero_section": HeroSection.objects.filter(is_active=True).first(),
+            "about_section": AboutSection.objects.filter(section_type=AboutSection.ABOUT).first(),
+            "luxury_section": AboutSection.objects.filter(section_type=AboutSection.LUXURY).first(),
             "wishlist_items": get_wishlist_ids(request),
         },
     )
@@ -1059,24 +1502,7 @@ def checkout(request, id):
     total_price = subtotal + shipping_fee
 
     if request.method == "POST" and form.is_valid():
-        if form.cleaned_data["payment_method"] != "COD":
-            messages.info(request, "Use the Razorpay secure payment button to complete prepaid checkout.")
-        else:
-            payload = {
-                "mode": "single",
-                "items": [_serialize_pending_item(checkout_items[0])],
-                "address": _serialize_address(form.cleaned_data),
-                "save_address": form.cleaned_data.get("save_address", False),
-                "shipping_method": form.cleaned_data["shipping_method"],
-                "shipping_fee": _format_money(_shipping_fee(form.cleaned_data["shipping_method"])),
-                "payment_method": "Cash on Delivery",
-            }
-            orders = _place_orders_for_payload(request.user, payload)
-            request.session["last_order_ids"] = [order.id for order in orders]
-            request.session.modified = True
-            _send_owner_notifications(orders)
-            messages.success(request, "Order placed successfully.")
-            return redirect("checkout_success")
+        messages.info(request, "Use the Razorpay secure payment button to complete checkout.")
 
     return render(
         request,
@@ -1112,25 +1538,7 @@ def cart_checkout(request):
     total_price = subtotal + shipping_fee
 
     if request.method == "POST" and form.is_valid():
-        if form.cleaned_data["payment_method"] != "COD":
-            messages.info(request, "Use the Razorpay secure payment button to complete prepaid checkout.")
-        else:
-            payload = {
-                "mode": "cart",
-                "items": [_serialize_pending_item(item) for item in cart_items],
-                "address": _serialize_address(form.cleaned_data),
-                "save_address": form.cleaned_data.get("save_address", False),
-                "shipping_method": form.cleaned_data["shipping_method"],
-                "shipping_fee": _format_money(_shipping_fee(form.cleaned_data["shipping_method"])),
-                "payment_method": "Cash on Delivery",
-            }
-            orders = _place_orders_for_payload(request.user, payload)
-            request.session["cart"] = {}
-            request.session["last_order_ids"] = [order.id for order in orders]
-            request.session.modified = True
-            _send_owner_notifications(orders)
-            messages.success(request, "Order placed successfully.")
-            return redirect("checkout_success")
+        messages.info(request, "Use the Razorpay secure payment button to complete checkout.")
 
     return render(
         request,
@@ -1171,15 +1579,6 @@ def create_razorpay_order(request):
         )
 
     payment_method = form.cleaned_data["payment_method"]
-    if payment_method == "COD":
-        return JsonResponse(
-            {
-                "success": False,
-                "message": "Cash on Delivery does not require Razorpay.",
-            },
-            status=400,
-        )
-
     shipping_method = form.cleaned_data["shipping_method"]
     shipping_fee = _shipping_fee(shipping_method)
 

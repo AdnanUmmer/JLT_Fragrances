@@ -51,9 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-loading-form]").forEach((form) => {
         form.addEventListener("submit", () => {
             const paymentField = form.querySelector(".payment-dropdown");
-            if (paymentField && paymentField.value !== "COD") {
-                return;
-            }
+            if (paymentField) return;
 
             const button = form.querySelector("[data-loading-button]");
             if (!button) return;
@@ -281,9 +279,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const updateRazorpayState = () => {
-            const isCod = paymentField.value === "COD";
-            razorpayButton.disabled = isCod;
-            razorpayButton.classList.toggle("is-disabled", isCod);
+            razorpayButton.disabled = false;
+            razorpayButton.classList.remove("is-disabled");
         };
 
         shippingFields.forEach((field) => {
@@ -293,11 +290,6 @@ document.addEventListener("DOMContentLoaded", () => {
         paymentField.addEventListener("change", updateRazorpayState);
 
         razorpayButton.addEventListener("click", async () => {
-            if (paymentField.value === "COD") {
-                window.showLuxuryToast("Select a prepaid option to use Razorpay.", "info");
-                return;
-            }
-
             const submitButton = form.querySelector("[data-loading-button]");
             submitButton?.classList.remove("is-loading");
             submitButton?.removeAttribute("disabled");

@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLT Admin Login</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="custom-admin-body custom-admin-login-body">
+    <main class="custom-admin-login-shell">
+        <section class="custom-admin-login-card">
+            <p class="custom-admin-kicker">Private Access</p>
+            <h1>JLT Admin</h1>
+            <p>Sign in with a superuser account to manage store operations.</p>
+
+            {% if messages %}
+                <div class="custom-admin-messages custom-admin-login-messages">
+                    {% for message in messages %}
+                        <div class="custom-admin-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="custom-admin-form">
+                {% csrf_token %}
+                <label>
+                    <span>Username</span>
+                    <input type="text" name="username" autocomplete="username" required>
+                </label>
+                <label>
+                    <span>Password</span>
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </label>
+                <button type="submit">Login</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

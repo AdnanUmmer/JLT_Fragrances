@@ -22,6 +22,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>JLT Fragrances</title>
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
 </head>
 
 <body data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}" data-auth-modal-url="{% url 'auth_required_modal' %}">

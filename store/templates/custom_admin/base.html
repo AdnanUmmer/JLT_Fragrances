@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLT Admin</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="custom-admin-body">
+    <aside class="custom-admin-sidebar">
+        <a class="custom-admin-brand" href="{% url 'admin_dashboard' %}">JLT<br>Admin</a>
+        <nav class="custom-admin-nav">
+            <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+            <a href="{% url 'admin_orders' %}">Orders</a>
+            <a href="{% url 'admin_users' %}">Users</a>
+            <a href="{% url 'admin_products' %}">Products</a>
+            <a href="{% url 'admin_hero' %}">Hero Section</a>
+            <a href="{% url 'admin_bestsellers' %}">Bestsellers</a>
+            <a href="{% url 'admin_content' %}">Content Management</a>
+        </nav>
+        <form method="post" action="{% url 'admin_logout' %}" class="custom-admin-logout">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </aside>
+
+    <main class="custom-admin-main">
+        {% if messages %}
+            <div class="custom-admin-messages">
+                {% for message in messages %}
+                    <div class="custom-admin-message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

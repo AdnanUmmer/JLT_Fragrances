@@ -2,6 +2,21 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('admin-login/', views.admin_login, name='admin_login'),
+    path('admin-logout/', views.admin_logout, name='admin_logout'),
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-orders/', views.admin_orders, name='admin_orders'),
+    path('admin-orders/<int:order_id>/', views.admin_order_detail, name='admin_order_detail'),
+    path('admin-users/', views.admin_users, name='admin_users'),
+    path('admin-users/<int:user_id>/edit/', views.admin_user_edit, name='admin_user_edit'),
+    path('admin-products/', views.admin_products, name='admin_products'),
+    path('admin-products/add/', views.admin_product_add, name='admin_product_add'),
+    path('admin-products/<int:product_id>/edit/', views.admin_product_edit, name='admin_product_edit'),
+    path('admin-products/<int:product_id>/delete/', views.admin_product_delete, name='admin_product_delete'),
+    path('admin-hero/', views.admin_hero, name='admin_hero'),
+    path('admin-bestsellers/', views.admin_bestsellers, name='admin_bestsellers'),
+    path('admin-content/', views.admin_content, name='admin_content'),
+
     path('', views.home, name='home'),
     path('about/', views.about, name='about'),
     path('privacy-policy/', views.policy_page, {"slug": "privacy"}, name='privacy_policy'),

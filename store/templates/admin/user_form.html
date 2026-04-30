@@ -1,0 +1,50 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Customers</p>
+    <h1>Edit User</h1>
+    <p>Update basic customer account details.</p>
+</section>
+
+<form method="post" class="custom-admin-card custom-admin-editor-form">
+    {% csrf_token %}
+    <div class="custom-admin-form-actions-top">
+        <a class="custom-admin-secondary-action" href="{% url 'admin_users' %}">Back to Users</a>
+        <button type="submit" class="custom-admin-submit">Save User</button>
+    </div>
+    <section class="custom-admin-form-section">
+        <h2>Account Details</h2>
+        <div class="custom-admin-field-grid">
+            <label>
+                <span>First Name</span>
+                <input type="text" name="first_name" value="{{ edited_user.first_name }}">
+            </label>
+            <label>
+                <span>Last Name</span>
+                <input type="text" name="last_name" value="{{ edited_user.last_name }}">
+            </label>
+            <label>
+                <span>Email</span>
+                <input type="email" name="email" value="{{ edited_user.email }}">
+            </label>
+            <label>
+                <span>Username</span>
+                <input type="text" name="username" value="{{ edited_user.username }}">
+            </label>
+            <label>
+                <span>Phone</span>
+                <input type="text" name="phone_number" value="{{ profile.phone_number|default:'' }}">
+            </label>
+            <label class="custom-admin-check-row">
+                <input type="checkbox" name="is_active" {% if edited_user.is_active %}checked{% endif %}>
+                <span>Active account</span>
+            </label>
+            <label class="custom-admin-check-row">
+                <input type="checkbox" name="receive_offers" {% if profile and profile.receive_offers %}checked{% endif %}>
+                <span>Receives offers</span>
+            </label>
+        </div>
+    </section>
+</form>
+{% endblock %}

@@ -192,11 +192,6 @@ class NewsletterPreferencesForm(forms.ModelForm):
 
 
 PAYMENT_CHOICES = [
-    ("COD", "Cash on Delivery"),
-    ("UPI", "UPI"),
-    ("Card", "Credit / Debit Card"),
-    ("Net Banking", "Net Banking"),
-    ("Wallets", "Wallets"),
     ("Razorpay", "Razorpay Secure Payment"),
 ]
 

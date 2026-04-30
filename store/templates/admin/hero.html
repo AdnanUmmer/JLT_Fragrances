@@ -1,0 +1,32 @@
+{% extends "custom_admin/base.html" %}
+
+{% block content %}
+<section class="custom-admin-page-head">
+    <p class="custom-admin-kicker">Homepage</p>
+    <h1>Hero Section</h1>
+    <p>Upload the active storefront hero image.</p>
+</section>
+
+<section class="custom-admin-detail-grid custom-admin-detail-grid-two">
+    <article class="custom-admin-card">
+        <h2>Current Hero</h2>
+        {% if hero and hero.image %}
+            <img class="custom-admin-hero-preview" src="{{ hero.image.url }}" alt="Current hero image">
+        {% else %}
+            <p class="custom-admin-muted">No custom hero image is active. The storefront fallback image will be used.</p>
+        {% endif %}
+    </article>
+
+    <article class="custom-admin-card">
+        <h2>Upload Image</h2>
+        <form method="post" enctype="multipart/form-data" class="custom-admin-form">
+            {% csrf_token %}
+            <label>
+                <span>Hero image</span>
+                <input type="file" name="image" accept="image/*" required>
+            </label>
+            <button type="submit">Save Hero Image</button>
+        </form>
+    </article>
+</section>
+{% endblock %}
