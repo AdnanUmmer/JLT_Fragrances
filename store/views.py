@@ -22,8 +22,6 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-import razorpay
-
 from .forms import (
     CheckoutForm,
     LuxuryAuthenticationForm,
@@ -127,6 +125,13 @@ CONTACT_PAGE = {
 def _get_razorpay_client():
     if not settings.RAZORPAY_KEY_ID or not settings.RAZORPAY_KEY_SECRET:
         return None
+
+    try:
+        import razorpay
+    except ImportError:
+        logger.exception("Razorpay package is not installed.")
+        return None
+
     return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 
@@ -1224,7 +1229,7 @@ def account_view(request):
 
 @login_required(login_url="login")
 def my_orders(request):
-    orders = request.user.orders.select_related("product", "variant")
+    orders = request.user.orders.select_related("product", "variant").order_by("-created_at", "-id")
     paginator = Paginator(orders, 8)
     page_obj = paginator.get_page(request.GET.get("page"))
 

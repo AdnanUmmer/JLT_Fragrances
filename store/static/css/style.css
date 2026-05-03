@@ -465,6 +465,7 @@ html {
 .auth-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 18px;
+    row-gap: 18px;
 }
 
 .auth-field {
@@ -486,6 +487,7 @@ html {
 }
 
 .lux-input {
+    box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     padding: 16px 18px;
@@ -525,6 +527,8 @@ html {
 
 .lux-password-wrap {
     position: relative;
+    width: 100%;
+    min-width: 0;
 }
 
 .lux-password-wrap .lux-input {
@@ -578,11 +582,15 @@ html {
 }
 
 .lux-check {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 10px;
+    max-width: 100%;
     color: rgba(245,245,220,0.75);
     font-size: 14px;
+    line-height: 1.5;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .lux-check-spacious {
@@ -590,6 +598,7 @@ html {
 }
 
 .lux-check input[type="checkbox"] {
+    flex: 0 0 auto;
     accent-color: beige;
     width: 16px;
     height: 16px;
@@ -1326,6 +1335,16 @@ html {
     .checkout-form,
     .luxury-modal-panel {
         border-radius: 24px;
+    }
+
+    .auth-card h1,
+    .account-hero h1 {
+        font-size: 40px;
+        line-height: 1;
+    }
+
+    .auth-card {
+        padding: 28px 18px;
     }
 
     .auth-row-between {
