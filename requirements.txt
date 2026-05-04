@@ -11,3 +11,4 @@ setuptools>=69.5,<70
 wheel>=0.45,<1
 whitenoise>=6.9,<7
 PyJWT>=2.10,<3
+cryptography>=42,<47
