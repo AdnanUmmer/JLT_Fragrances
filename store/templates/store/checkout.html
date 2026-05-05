@@ -159,9 +159,9 @@
                             {% if item.image %}
                                 <img src="{{ item.image }}" alt="{{ item.name }}">
                             {% elif item.product and item.product.image %}
-                                <img src="{{ item.product.image.url }}" alt="{{ item.name }}">
+                                <img src="{{ item.product.image_url }}" alt="{{ item.name }}">
                             {% else %}
-                                <img src="{% static 'Images/PlaceHolder.png' %}" alt="{{ item.name }}">
+                                <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
                             {% endif %}
                         </div>
                         <div class="checkout-summary-copy">

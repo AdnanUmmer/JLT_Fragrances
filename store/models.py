@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.templatetags.static import static
 
 
 # ================= PRODUCT =================
@@ -39,6 +40,12 @@ class Product(models.Model):
     def __str__(self):
         return self.inspired_by
 
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return static("images/placeholder.png")
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
@@ -56,6 +63,12 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"{self.product.inspired_by} gallery image {self.pk}"
+
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return static("images/placeholder.png")
 
 
 class HeroSection(models.Model):

@@ -14,7 +14,7 @@
 <a href="{% url 'product_detail' product.id %}" class="product-card">
 
     {% if product.image %}
-        <img src="{{ product.image.url }}">
+        <img src="{{ product.image_url }}" alt="{{ product.inspired_by }}">
     {% endif %}
 
     <h3>{{ product.inspired_by }}</h3>

@@ -325,6 +325,27 @@ html {
 
 /* ==================== PREMIUM AUTH SYSTEM ==================== */
 
+#collections .split-card,
+.collection-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+#collections .split-card-content,
+.collection-card > * {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#collections .card-title,
+.collection-card h2,
+.collection-card h3 {
+    width: 100%;
+    text-align: center;
+}
+
 .luxury-toast-stack {
     position: fixed;
     top: 80px;

@@ -77,13 +77,13 @@
             <div class="custom-admin-image-grid">
                 {% if product.image %}
                     <figure>
-                        <img src="{{ product.image.url }}" alt="{{ product.inspired_by }}">
+                        <img src="{{ product.image_url }}" alt="{{ product.inspired_by }}">
                         <figcaption>Primary</figcaption>
                     </figure>
                 {% endif %}
                 {% for image in product.extra_images.all %}
                     <label class="custom-admin-gallery-thumb">
-                        <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:product.inspired_by }}">
+                        <img src="{{ image.image_url }}" alt="{{ image.alt_text|default:product.inspired_by }}">
                         <span><input type="checkbox" name="delete_image" value="{{ image.id }}"> Delete</span>
                     </label>
                 {% endfor %}

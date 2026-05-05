@@ -26,7 +26,7 @@
                        {% if item.image %}
                            <img src="{{ item.image }}" alt="{{ item.name }}">
                         {% else %}
-                            <img src="{% static 'Images/PlaceHolder.png' %}" alt="{{ item.name }}">
+                            <img src="{% static 'images/placeholder.png' %}" alt="{{ item.name }}">
                         {% endif %}
                     </div>
                        
@@ -96,7 +96,7 @@
             <!-- ================= EMPTY CART ================= -->
             <div class="empty-cart">
 
-                <img src="{% static 'Images/EmptyCart2.png' %}" 
+                <img src="{% static 'images/EmptyCart2.png' %}"
                      alt="Empty Cart" 
                      class="cart-empty-img">
 

@@ -197,7 +197,7 @@
             inset: 10% 12%;
             background:
                 linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.4)),
-                url("{% static 'Images/HeroPicture2.png' %}") center/cover no-repeat;
+                url("{% static 'images/HeroPicture2.png' %}") center/cover no-repeat;
             border: 1px solid rgba(245,237,226,0.12);
             filter: saturate(0.82) contrast(1.06);
         }
@@ -239,6 +239,10 @@
             position: relative;
             min-height: 480px;
             padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
             border: 1px solid rgba(216,197,166,0.16);
             overflow: hidden;
             background:
@@ -279,13 +283,13 @@
         .split-card-media.like {
             background:
                 linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.65)),
-                url("{% static 'Images/RightBanner2.png' %}") center/cover no-repeat;
+                url("{% static 'images/RightBanner2.png' %}") center/cover no-repeat;
         }
 
         .split-card-media.love {
             background:
                 linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.65)),
-                url("{% static 'Images/LeftBanner2.png' %}") center/cover no-repeat;
+                url("{% static 'images/LeftBanner2.png' %}") center/cover no-repeat;
         }
 
         .split-card-content {
@@ -294,8 +298,11 @@
             max-width: 360px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: center;
+            align-items: center;
             height: 100%;
+            min-height: 400px;
+            margin: 0 auto;
         }
 
         .card-tag {
@@ -468,7 +475,7 @@
             border: 1px solid var(--line);
             background:
                 linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.5)),
-                url("{% static 'Images/Poster4.png' %}") center/cover no-repeat;
+                url("{% static 'images/Poster4.png' %}") center/cover no-repeat;
             box-shadow: var(--shadow);
             overflow: hidden;
         }
@@ -497,7 +504,7 @@
             background:
                 radial-gradient(circle at 50% 50%, rgba(216,197,166,0.11), transparent 20%),
                 linear-gradient(180deg, rgba(0,0,0,0.32), rgba(0,0,0,0.66)),
-                url("{% static 'Images/poster5.png' %}") center/cover no-repeat;
+                url("{% static 'images/poster5.png' %}") center/cover no-repeat;
             opacity: 0.24;
             transform: scale(1.08);
             animation: slowZoom 18s ease-in-out infinite alternate;
@@ -667,6 +674,10 @@
                 padding: 26px 22px;
             }
 
+            .split-card-content {
+                min-height: 340px;
+            }
+
             .product-grid {
                 grid-template-columns: 1fr;
             }
@@ -711,7 +722,7 @@
                 {% if hero_section and hero_section.image %}
                     <img src="{{ hero_section.image.url }}" alt="JLT Fragrances hero">
                 {% else %}
-                    <img src="{% static 'Images/HeroPicture2.png' %}" alt="Perfume">
+                    <img src="{% static 'images/HeroPicture2.png' %}" alt="Perfume">
                 {% endif %}
             </div>
 
@@ -758,11 +769,7 @@
                     {% for product in products|slice:":4" %}
                         <article class="product-card reveal">
                             <a href="{% url 'product_detail' product.id %}" class="product-media">
-                                {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.inspired_by }}">
-                                {% else %}
-                                    <img src="{% static 'Images/PlaceHolder.png' %}" alt="{{ product.inspired_by }}">
-                                {% endif %}
+                                <img src="{{ product.image_url }}" alt="{{ product.inspired_by }}">
                             </a>
                             <button type="button"
                                     class="wishlist-btn {% if product.id in wishlist_items %}active{% endif %}"

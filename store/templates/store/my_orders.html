@@ -15,9 +15,9 @@
                 <a href="{% url 'my_order_detail' order.id %}" class="order-card luxury-panel">
                     <div class="order-card-image">
                         {% if order.product and order.product.image %}
-                            <img src="{{ order.product.image.url }}" alt="{{ order.product.inspired_by }}">
+                            <img src="{{ order.product.image_url }}" alt="{{ order.product.inspired_by }}">
                         {% else %}
-                            <img src="{% static 'Images/PlaceHolder.png' %}" alt="Order image placeholder">
+                            <img src="{% static 'images/placeholder.png' %}" alt="Order image placeholder">
                         {% endif %}
                     </div>
 

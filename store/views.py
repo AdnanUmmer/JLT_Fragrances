@@ -190,11 +190,11 @@ def _format_money(value):
 
 
 def _product_image_url(product):
-    if product and product.image:
-        return product.image.url
+    if product:
+        return product.image_url
     extra = product.extra_images.first() if product else None
-    if extra and extra.image:
-        return extra.image.url
+    if extra:
+        return extra.image_url
     return ""
 
 
@@ -203,7 +203,7 @@ def _gallery_images(product):
     if product.image:
         images.append(
             {
-                "url": product.image.url,
+                "url": product.image_url,
                 "alt": product.inspired_by,
                 "id": f"primary-{product.id}",
             }
@@ -214,9 +214,18 @@ def _gallery_images(product):
             continue
         images.append(
             {
-                "url": image.image.url,
+                "url": image.image_url,
                 "alt": image.alt_text or product.inspired_by,
                 "id": f"gallery-{image.id}",
+            }
+        )
+
+    if not images:
+        images.append(
+            {
+                "url": product.image_url,
+                "alt": product.inspired_by,
+                "id": f"placeholder-{product.id}",
             }
         )
 
