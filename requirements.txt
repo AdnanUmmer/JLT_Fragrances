@@ -3,6 +3,7 @@ dj-database-url>=2.3,<3
 django-allauth>=65.7,<66
 gunicorn>=23,<24
 Pillow>=11.1,<12
+openpyxl>=3.1,<4
 psycopg[binary]>=3.2,<3.4
 python-dotenv>=1.0,<2
 razorpay>=1.4.2,<2

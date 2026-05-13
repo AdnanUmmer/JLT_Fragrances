@@ -1025,7 +1025,17 @@ def contact_page(request):
     )
 
 
+COLLECTION_CATEGORY_ALIASES = {
+    "inspired": "like",
+    "original": "love",
+}
+
+
 def collection(request, category):
+    requested_category = category
+    category = COLLECTION_CATEGORY_ALIASES.get(category, category)
+    theme_class = "theme-original" if category == "love" else "theme-inspired"
+
     products = Product.objects.all().prefetch_related("variants")
 
     if category != "all":
@@ -1112,6 +1122,8 @@ def collection(request, category):
         {
             "products": products,
             "category": category,
+            "requested_category": requested_category,
+            "theme_class": theme_class,
             "brands": brands,
             "occasions": occasions,
             "top_notes": top_notes,

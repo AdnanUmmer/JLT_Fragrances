@@ -315,9 +315,13 @@
 
         .card-title {
             font-family: var(--serif);
-            font-size: clamp(2.6rem, 4vw, 4rem);
-            line-height: 0.98;
+            font-size: clamp(1.8rem, 3.2vw, 3.35rem);
+            line-height: 1.04;
             margin-bottom: 16px;
+            white-space: nowrap;
+            width: 100%;
+            text-align: center;
+            overflow-wrap: normal;
         }
 
         .card-copy {
@@ -413,8 +417,10 @@
             font-family: var(--serif);
             font-size: 1.5rem;
             font-weight: 600;
-            line-height: 1.05;
+            line-height: 1.25;
             margin-bottom: 8px;
+            min-height: 3.1em;
+            overflow-wrap: anywhere;
         }
 
         .product-info p {
@@ -678,8 +684,17 @@
                 min-height: 340px;
             }
 
+            .card-title {
+                font-size: clamp(1.42rem, 7vw, 2.22rem);
+            }
+
             .product-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .product-info h3 {
+                min-height: auto;
+                font-size: clamp(1.35rem, 7vw, 1.75rem);
             }
 
             .product-media {
@@ -738,7 +753,7 @@
                     <p class="section-copy">A dual universe designed for those who admire the timeless and those who prefer to define their own signature.</p>
                 </div>
                 <div class="split-grid">
-                    <a href="{% url 'collection' 'like' %}" class="split-card reveal">
+                    <a href="{% url 'collection_inspired' %}" class="split-card reveal">
                         <div class="split-card-media like"></div>
                         <div class="split-card-content">
                             <span class="card-tag">Collection I</span>
@@ -746,7 +761,7 @@
                             <p class="card-copy">Inspired by timeless masterpieces. Iconic compositions interpreted with modern confidence and luxurious depth.</p>
                         </div>
                     </a>
-                    <a href="{% url 'collection' 'love' %}" class="split-card reveal">
+                    <a href="{% url 'collection_original' %}" class="split-card reveal">
                         <div class="split-card-media love"></div>
                         <div class="split-card-content">
                             <span class="card-tag">Collection II</span>

@@ -13,14 +13,23 @@ document.addEventListener("DOMContentLoaded", () => {
         toast.innerHTML = `<span>${message}</span><button type="button" class="luxury-toast-close" aria-label="Dismiss notification">&times;</button>`;
         stack.appendChild(toast);
 
-        toast.querySelector(".luxury-toast-close")?.addEventListener("click", () => toast.remove());
-        window.setTimeout(() => toast.remove(), 3200);
+        const dismissToast = () => {
+            toast.classList.add("is-hiding");
+            window.setTimeout(() => toast.remove(), 260);
+        };
+
+        toast.querySelector(".luxury-toast-close")?.addEventListener("click", dismissToast);
+        window.setTimeout(dismissToast, 1000);
     };
 
-    document.querySelectorAll(".luxury-toast-close").forEach((button) => {
-        button.addEventListener("click", () => {
-            button.closest(".luxury-toast")?.remove();
-        });
+    document.querySelectorAll(".luxury-toast").forEach((toast) => {
+        const dismissToast = () => {
+            toast.classList.add("is-hiding");
+            window.setTimeout(() => toast.remove(), 260);
+        };
+
+        toast.querySelector(".luxury-toast-close")?.addEventListener("click", dismissToast);
+        window.setTimeout(dismissToast, 1000);
     });
 
     document.querySelectorAll("[data-dropdown]").forEach((dropdown) => {

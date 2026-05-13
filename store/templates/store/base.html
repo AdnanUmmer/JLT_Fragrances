@@ -41,6 +41,14 @@
                 </div>
             {% endfor %}
         </div>
+        <script>
+            window.setTimeout(() => {
+                document.querySelectorAll(".luxury-toast").forEach((toast) => {
+                    toast.classList.add("is-hiding");
+                    window.setTimeout(() => toast.remove(), 260);
+                });
+            }, 1000);
+        </script>
     {% endif %}
 
     <main class="site-main">

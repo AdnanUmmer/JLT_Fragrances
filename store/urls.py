@@ -23,6 +23,8 @@ urlpatterns = [
     path('refund-policy/', views.policy_page, {"slug": "refund"}, name='refund_policy'),
     path('shipping-policy/', views.policy_page, {"slug": "shipping"}, name='shipping_policy'),
     path('contact-us/', views.contact_page, name='contact_us'),
+    path('collections/inspired/', views.collection, {"category": "inspired"}, name='collection_inspired'),
+    path('collections/original/', views.collection, {"category": "original"}, name='collection_original'),
     path('collection/<str:category>/', views.collection, name='collection'),
 
     path('login/', views.login_view, name='login'),

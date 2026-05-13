@@ -3,16 +3,16 @@
 {% block content %}
 
 
-<section class="collection">
+<section class="collection {{ theme_class|default:'theme-inspired' }}">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside class="collection-sidebar luxury-panel">
 
         <h3 class="browse">BROWSE BY</h3>
 
         <ul>
-            <li><a href="{% url 'collection' 'all' %}">All Products</a></li>
-            <li><a href="{% url 'collection' 'love' %}">Original Fragrances</a></li>
-            <li><a href="{% url 'collection' 'like' %}">Inspired Fragrances</a></li>
+            <li><a href="{% url 'collection' 'all' %}" class="{% if category == 'all' %}active{% endif %}">All Products</a></li>
+            <li><a href="{% url 'collection_original' %}" class="{% if category == 'love' %}active{% endif %}">Original Fragrances</a></li>
+            <li><a href="{% url 'collection_inspired' %}" class="{% if category == 'like' %}active{% endif %}">Inspired Fragrances</a></li>
         </ul>
 
         <h3>FILTER BY</h3>

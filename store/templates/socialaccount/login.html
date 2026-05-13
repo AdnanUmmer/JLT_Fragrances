@@ -1,0 +1,29 @@
+{% extends "store/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<section class="social-auth-shell">
+    <div class="social-auth-card auth-card-entrance">
+        <p class="auth-kicker">JLT FRAGRANCES</p>
+        <h1>Continue with Google</h1>
+        <p class="auth-subheading">
+            You are moments away from entering your private fragrance account.
+        </p>
+
+        <div class="social-auth-orbit" aria-hidden="true">
+            <span>G</span>
+        </div>
+
+        <form method="post" class="auth-form social-auth-form">
+            {% csrf_token %}
+            <button type="submit" class="luxury-primary-btn full-width">
+                <span>Continue Securely</span>
+            </button>
+        </form>
+
+        <p class="social-auth-note">
+            We will only use your Google details to create or access your JLT Fragrances account.
+        </p>
+    </div>
+</section>
+{% endblock %}

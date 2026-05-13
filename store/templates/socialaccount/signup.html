@@ -1,0 +1,45 @@
+{% extends "store/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<section class="social-auth-shell">
+    <div class="social-auth-card auth-card-entrance">
+        <p class="auth-kicker">JLT FRAGRANCES</p>
+        <h1>Create Your Google Account</h1>
+        <p class="auth-subheading">
+            Complete your private client profile to save favourites, orders, and fragrance preferences.
+        </p>
+
+        <div class="social-auth-orbit" aria-hidden="true">
+            <span>G</span>
+        </div>
+
+        <form method="post" class="auth-form social-auth-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="auth-banner-error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+
+            {% for field in form %}
+                {% if field.is_hidden %}
+                    {{ field }}
+                {% else %}
+                    <div class="auth-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<small class="auth-error">{{ field.errors.0 }}</small>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <button type="submit" class="luxury-primary-btn full-width">
+                <span>Create User using Google</span>
+            </button>
+        </form>
+
+        <p class="social-auth-note">
+            Your account remains protected by Google authentication and JLT Fragrances privacy standards.
+        </p>
+    </div>
+</section>
+{% endblock %}
