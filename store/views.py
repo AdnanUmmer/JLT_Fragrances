@@ -1,9 +1,12 @@
+import hashlib
 import json
+import re
+import secrets
 import logging
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from email.utils import formataddr, parseaddr
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 from django.conf import settings
@@ -26,10 +29,12 @@ from .forms import (
     CheckoutForm,
     LuxuryAuthenticationForm,
     NewsletterPreferencesForm,
+    PhoneAuthStartForm,
+    PhoneOTPVerifyForm,
     ProfileForm,
     SignupForm,
 )
-from .models import AboutSection, CollectionCard, HeroSection, Order, Product, ProductImage, SavedAddress, Variant, WishlistItem
+from .models import AboutSection, CollectionCard, HeroSection, NoteImage, Order, PhoneOTP, Product, ProductImage, SavedAddress, SiteSetting, Variant, WishlistItem
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -154,7 +159,20 @@ def _get_safe_redirect(request, default="home"):
     return reverse(default)
 
 
+def _google_oauth_configured():
+    if getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("google", {}).get("APP"):
+        return True
+    try:
+        from allauth.socialaccount.models import SocialApp
+
+        return SocialApp.objects.filter(provider="google").exists()
+    except Exception:
+        return False
+
+
 def _google_login_url(next_url):
+    if not _google_oauth_configured():
+        return None
     for name, args in (("google_login", []), ("socialaccount_login", ["google"])):
         try:
             url = reverse(name, args=args)
@@ -162,7 +180,6 @@ def _google_login_url(next_url):
         except NoReverseMatch:
             continue
     return None
-
 
 def _redirect_to_login(request, next_url, message_text):
     messages.info(request, message_text)
@@ -1117,6 +1134,36 @@ def collection(request, category):
     middle_notes = extract_notes(filter_qs, "middle_note")
     base_notes = extract_notes(filter_qs, "base_note")
 
+    note_image_map = {
+        note.name.strip().casefold(): note
+        for note in NoteImage.objects.filter(is_active=True)
+    }
+
+    def note_items(notes, filter_key):
+        items = []
+        for note in notes:
+            note_image = note_image_map.get(note.casefold())
+            items.append(
+                {
+                    "name": note,
+                    "filter_key": filter_key,
+                    "image_url": note_image.image.url if note_image and note_image.image else "",
+                }
+            )
+        return items
+
+    top_note_items = note_items(top_notes, "top_note")
+    middle_note_items = note_items(middle_notes, "middle_note")
+    base_note_items = note_items(base_notes, "base_note")
+    all_note_items = []
+    seen_notes = set()
+    for group in (top_note_items, middle_note_items, base_note_items):
+        for item in group:
+            key = item["name"].casefold()
+            if key not in seen_notes:
+                all_note_items.append(item)
+                seen_notes.add(key)
+
     return render(
         request,
         "store/collection.html",
@@ -1130,6 +1177,10 @@ def collection(request, category):
             "top_notes": top_notes,
             "middle_notes": middle_notes,
             "base_notes": base_notes,
+            "top_note_items": top_note_items,
+            "middle_note_items": middle_note_items,
+            "base_note_items": base_note_items,
+            "all_note_items": all_note_items,
             "show": show,
             "query": query,
             "sort": sort,
@@ -1138,6 +1189,70 @@ def collection(request, category):
         },
     )
 
+
+
+def _normalize_phone_number(value):
+    value = (value or "").strip()
+    digits = "".join(ch for ch in value if ch.isdigit())
+    if not digits:
+        return ""
+    if value.startswith("+"):
+        return f"+{digits}"
+    if len(digits) == 10:
+        return f"+91{digits}"
+    return f"+{digits}"
+
+
+def _hash_otp(code):
+    return hashlib.sha256(code.encode("utf-8")).hexdigest()
+
+
+def _phone_profile(phone_number):
+    return UserProfile.objects.select_related("user").filter(phone_number=phone_number).first()
+
+
+def _send_phone_otp(phone_number, code):
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER:
+        try:
+            import requests
+
+            response = requests.post(
+                f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Messages.json",
+                data={
+                    "From": settings.TWILIO_FROM_NUMBER,
+                    "To": phone_number,
+                    "Body": f"Your JLT Fragrances verification code is {code}. It expires in {settings.PHONE_OTP_EXPIRY_MINUTES} minutes.",
+                },
+                auth=(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN),
+                timeout=12,
+            )
+            response.raise_for_status()
+            return True, "Verification code sent."
+        except Exception as exc:
+            logger.exception("Twilio OTP delivery failed for %s: %s", phone_number, exc)
+            return False, "We could not send an OTP right now. Please try again."
+
+    if settings.DEBUG:
+        return True, f"Development OTP: {code}"
+
+    return False, "Phone OTP is not configured yet. Please use email or Google login."
+
+
+def _create_phone_otp(phone_number, purpose, form):
+    code = f"{secrets.randbelow(1000000):06d}"
+    otp = PhoneOTP.objects.create(
+        phone_number=phone_number,
+        purpose=purpose,
+        code_hash=_hash_otp(code),
+        first_name=form.cleaned_data.get("first_name", "").strip(),
+        last_name=form.cleaned_data.get("last_name", "").strip(),
+        receive_offers=form.cleaned_data.get("receive_offers", False),
+        expires_at=timezone.now() + timedelta(minutes=settings.PHONE_OTP_EXPIRY_MINUTES),
+    )
+    sent, message = _send_phone_otp(phone_number, code)
+    if not sent:
+        otp.delete()
+    return sent, message
 
 def signup_view(request):
     if request.user.is_authenticated:
@@ -1199,6 +1314,115 @@ def login_view(request):
         },
     )
 
+
+
+def phone_auth_start(request, purpose):
+    if purpose not in {PhoneOTP.SIGNUP, PhoneOTP.LOGIN}:
+        return redirect("login")
+    if request.user.is_authenticated:
+        return redirect("account")
+
+    next_url = _get_safe_redirect(request)
+    form = PhoneAuthStartForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        phone_number = _normalize_phone_number(form.cleaned_data["phone_number"])
+        if not phone_number:
+            form.add_error("phone_number", "Enter a valid phone number.")
+        elif purpose == PhoneOTP.LOGIN and not _phone_profile(phone_number):
+            form.add_error("phone_number", "No account exists with this phone number.")
+        elif purpose == PhoneOTP.SIGNUP and _phone_profile(phone_number):
+            form.add_error("phone_number", "An account with this phone number already exists. Please sign in instead.")
+        else:
+            sent, message = _create_phone_otp(phone_number, purpose, form)
+            if sent:
+                request.session["pending_phone_auth"] = {
+                    "phone_number": phone_number,
+                    "purpose": purpose,
+                    "next": next_url,
+                }
+                request.session.modified = True
+                messages.info(request, message)
+                return redirect("phone_auth_verify", purpose=purpose)
+            messages.error(request, message)
+
+    return render(
+        request,
+        "store/phone_auth_start.html",
+        {
+            "form": form,
+            "purpose": purpose,
+            "next": next_url,
+            "wishlist_items": get_wishlist_ids(request),
+        },
+    )
+
+
+def phone_auth_verify(request, purpose):
+    pending = request.session.get("pending_phone_auth") or {}
+    phone_number = pending.get("phone_number")
+    if pending.get("purpose") != purpose or purpose not in {PhoneOTP.SIGNUP, PhoneOTP.LOGIN} or not phone_number:
+        messages.error(request, "Your phone verification session has expired.")
+        return redirect("phone_auth_start", purpose=purpose if purpose in {PhoneOTP.SIGNUP, PhoneOTP.LOGIN} else PhoneOTP.LOGIN)
+
+    form = PhoneOTPVerifyForm(request.POST or None)
+    otp = PhoneOTP.objects.filter(
+        phone_number=phone_number,
+        purpose=purpose,
+        consumed_at__isnull=True,
+        expires_at__gt=timezone.now(),
+    ).first()
+
+    if request.method == "POST" and form.is_valid():
+        if not otp:
+            form.add_error("code", "This code has expired. Please request a new one.")
+        elif otp.attempts >= 5:
+            form.add_error("code", "Too many attempts. Please request a new code.")
+        elif otp.code_hash != _hash_otp(form.cleaned_data["code"]):
+            otp.attempts += 1
+            otp.save(update_fields=["attempts"])
+            form.add_error("code", "Incorrect verification code.")
+        else:
+            otp.consumed_at = timezone.now()
+            otp.save(update_fields=["consumed_at"])
+            profile = _phone_profile(phone_number)
+            if purpose == PhoneOTP.SIGNUP and not profile:
+                base_username = re.sub(r"\D+", "", phone_number) or secrets.token_hex(4)
+                username = f"phone_{base_username}"
+                if User.objects.filter(username=username).exists():
+                    username = f"{username}_{secrets.token_hex(3)}"
+                user = User.objects.create_user(
+                    username=username,
+                    first_name=otp.first_name,
+                    last_name=otp.last_name,
+                    password=None,
+                )
+                profile = user.profile
+                profile.phone_number = phone_number
+                profile.receive_offers = otp.receive_offers
+                profile.save(update_fields=["phone_number", "receive_offers"])
+            elif profile:
+                user = profile.user
+            else:
+                messages.error(request, "No account exists with this phone number.")
+                return redirect("phone_auth_start", purpose=PhoneOTP.LOGIN)
+
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+            request.session.pop("pending_phone_auth", None)
+            request.session.modified = True
+            messages.success(request, "Phone number verified.")
+            return redirect(pending.get("next") or reverse("account"))
+
+    return render(
+        request,
+        "store/phone_auth_verify.html",
+        {
+            "form": form,
+            "purpose": purpose,
+            "phone_number": phone_number,
+            "wishlist_items": get_wishlist_ids(request),
+        },
+    )
 
 @require_POST
 def logout_view(request):
@@ -1783,4 +2007,10 @@ class LuxuryPasswordResetView(PasswordResetView):
             "If an account exists for that email, a reset link has been sent.",
         )
         return super().form_valid(form)
+
+
+
+
+
+
 

@@ -23,7 +23,7 @@ class Product(models.Model):
     DEFAULT_VARIANTS = [
         ("30ml", 499),
         ("50ml", 799),
-        ("100ml", 1299),
+        ("100ml", 1699),
     ]
 
     def save(self, *args, **kwargs):
@@ -104,6 +104,8 @@ class CollectionCard(models.Model):
     subtitle = models.TextField(blank=True)
     image = models.ImageField(upload_to="collections/", blank=True, null=True)
     button_text = models.CharField(max_length=80, default="Explore Collection")
+    accent_label = models.CharField(max_length=80, blank=True)
+    accent_color = models.CharField(max_length=20, blank=True, help_text="Optional CSS color, for example #d8c5a6")
     collection_type = models.CharField(max_length=20, choices=COLLECTION_CHOICES, default=INSPIRED)
     destination_url = models.CharField(max_length=255, blank=True)
     ordering = models.PositiveIntegerField(default=0)
@@ -145,6 +147,69 @@ class AboutSection(models.Model):
     def __str__(self):
         return f"{self.get_section_type_display()} Section"
 
+
+
+class SiteSetting(models.Model):
+    whatsapp_number = models.CharField(
+        max_length=25,
+        blank=True,
+        help_text="Owner WhatsApp number in international format, for example +919876543210.",
+    )
+    whatsapp_message = models.CharField(
+        max_length=180,
+        default="Hello JLT Fragrances, I would like help choosing a perfume.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Site Setting"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return "Site Settings"
+
+
+class NoteImage(models.Model):
+    name = models.CharField(max_length=120, unique=True)
+    image = models.ImageField(upload_to="notes/", blank=True, null=True)
+    ordering = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("ordering", "name")
+
+    def __str__(self):
+        return self.name
+
+
+class PhoneOTP(models.Model):
+    SIGNUP = "signup"
+    LOGIN = "login"
+    PURPOSE_CHOICES = [
+        (SIGNUP, "Signup"),
+        (LOGIN, "Login"),
+    ]
+
+    phone_number = models.CharField(max_length=25)
+    purpose = models.CharField(max_length=12, choices=PURPOSE_CHOICES)
+    code_hash = models.CharField(max_length=64)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    first_name = models.CharField(max_length=75, blank=True)
+    last_name = models.CharField(max_length=75, blank=True)
+    receive_offers = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+    consumed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=("phone_number", "purpose", "created_at")),
+        ]
+
+    def __str__(self):
+        return f"{self.phone_number} - {self.purpose}"
 
 # ================= VARIANT =================
 class Variant(models.Model):
@@ -301,4 +366,5 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.pk} - {self.user}"
+
 

@@ -80,6 +80,8 @@
 
             <div class="auth-field auth-field-full">
                 <div class="auth-divider"><span>OR</span></div>
+
+                <a href="{% url 'phone_auth_start' 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="luxury-secondary-btn full-width">Create Account with Phone OTP</a>
             </div>
 
             {% if google_login_url %}
@@ -99,3 +101,4 @@
     </div>
 </section>
 {% endblock %}
+

@@ -142,6 +142,51 @@ class SignupForm(forms.Form):
         return user
 
 
+
+class PhoneAuthStartForm(forms.Form):
+    phone_number = forms.CharField(
+        max_length=25,
+        widget=forms.TextInput(
+            attrs={
+                "class": "lux-input",
+                "placeholder": "+91 98765 43210",
+                "autocomplete": "tel",
+            }
+        ),
+    )
+    first_name = forms.CharField(
+        max_length=75,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "lux-input", "placeholder": "First name"}),
+    )
+    last_name = forms.CharField(
+        max_length=75,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "lux-input", "placeholder": "Last name"}),
+    )
+    receive_offers = forms.BooleanField(required=False)
+
+
+class PhoneOTPVerifyForm(forms.Form):
+    code = forms.CharField(
+        min_length=6,
+        max_length=6,
+        widget=forms.TextInput(
+            attrs={
+                "class": "lux-input otp-input",
+                "placeholder": "6-digit code",
+                "inputmode": "numeric",
+                "autocomplete": "one-time-code",
+            }
+        ),
+    )
+
+    def clean_code(self):
+        code = "".join(ch for ch in self.cleaned_data["code"] if ch.isdigit())
+        if len(code) != 6:
+            raise ValidationError("Enter the 6-digit verification code.")
+        return code
+
 class ProfileForm(forms.ModelForm):
     first_name = forms.CharField(
         max_length=150,
@@ -251,3 +296,4 @@ class CheckoutForm(forms.ModelForm):
             "pincode": forms.TextInput(attrs={"class": "lux-input", "placeholder": "Postal code"}),
             "landmark": forms.TextInput(attrs={"class": "lux-input", "placeholder": "Landmark"}),
         }
+

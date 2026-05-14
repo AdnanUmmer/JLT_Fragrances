@@ -754,12 +754,12 @@
                 </div>
                 <div class="split-grid">
                     {% for card in collection_cards %}
-                        <a href="{{ card.destination_href }}" class="split-card reveal">
+                        <a href="{{ card.destination_href }}" class="split-card reveal"{% if card.accent_color %} style="--card-accent: {{ card.accent_color }};"{% endif %}>
                             <div class="split-card-media {% cycle 'like' 'love' %}"{% if card.image %} style="background-image: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.65)), url('{{ card.image.url }}');"{% endif %}></div>
                             <div class="split-card-content">
-                                <span class="card-tag">{{ card.button_text }}</span>
+                                <span class="card-tag">{{ card.accent_label|default:card.button_text }}</span>
                                 <h3 class="card-title">{{ card.title }}</h3>
-                                <p class="card-copy">{{ card.subtitle }}</p>
+                                <p class="card-copy">{{ card.subtitle }}</p><span class="collection-card-cta">{{ card.button_text }}</span>
                             </div>
                         </a>
                     {% empty %}
@@ -913,5 +913,6 @@
 
     </script>
 {% endblock %}
+
 
 

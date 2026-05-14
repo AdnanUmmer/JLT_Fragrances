@@ -98,6 +98,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'store.context_processors.auth_nav',
+                'store.context_processors.site_settings',
             ],
         },
     },
@@ -141,6 +142,23 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
 ACCOUNT_LOGOUT_ON_GET = False
+ACCOUNT_ADAPTER = 'store.adapters.LuxuryAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'store.adapters.LuxurySocialAccountAdapter'
+SOCIALACCOUNT_LOGIN_ON_GET = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+    }
+}
+if os.getenv('GOOGLE_CLIENT_ID') and os.getenv('GOOGLE_CLIENT_SECRET'):
+    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+        'client_id': os.getenv('GOOGLE_CLIENT_ID'),
+        'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
+        'key': '',
+    }
 
 # ========================
 # STATIC & MEDIA
@@ -197,6 +215,14 @@ RAZORPAY_CURRENCY = os.getenv('RAZORPAY_CURRENCY', 'INR')
 # ========================
 SITE_BASE_URL = os.getenv('SITE_BASE_URL')
 BRAND_LOGO_URL = os.getenv('BRAND_LOGO_URL', '')
+WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
+WHATSAPP_MESSAGE = os.getenv('WHATSAPP_MESSAGE', 'Hello JLT Fragrances, I would like help choosing a perfume.')
+
+# Phone OTP via Twilio SMS. In DEBUG, missing Twilio credentials use a local development OTP message.
+TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
+TWILIO_FROM_NUMBER = os.getenv('TWILIO_FROM_NUMBER', '')
+PHONE_OTP_EXPIRY_MINUTES = int(os.getenv('PHONE_OTP_EXPIRY_MINUTES', '10'))
 
 # ========================
 # TELEGRAM
@@ -208,3 +234,4 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 # DEFAULTS
 # ========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

@@ -73,10 +73,19 @@
             <span class="plus">+</span>
         </div>
 
-        <div id="notesBox" class="accordion-box">
-            {% for item in top_notes|slice:":8" %}<a href="?top_note={{ item }}">{{ item }}</a>{% endfor %}
-            {% for item in middle_notes|slice:":6" %}<a href="?middle_note={{ item }}">{{ item }}</a>{% endfor %}
-            {% for item in base_notes|slice:":6" %}<a href="?base_note={{ item }}">{{ item }}</a>{% endfor %}
+        <div id="notesBox" class="accordion-box notes-filter-box">
+            {% for item in all_note_items %}
+                <a href="?{{ item.filter_key }}={{ item.name|urlencode }}" class="note-filter-link">
+                    <span class="note-filter-icon">
+                        {% if item.image_url %}
+                            <img src="{{ item.image_url }}" alt="{{ item.name }}">
+                        {% else %}
+                            {{ item.name|first }}
+                        {% endif %}
+                    </span>
+                    <span>{{ item.name }}</span>
+                </a>
+            {% endfor %}
         </div>
 
         <a href="?show=notes" class="side-link side-link-small">View all notes</a>
@@ -120,22 +129,37 @@
 
                 <div class="note-group">
                     <h2>TOP NOTES</h2>
-                    {% for item in top_notes %}
-                        <a href="?top_note={{ item }}" class="brand-item">{{ item }}</a>
+                    {% for item in top_note_items %}
+                        <a href="?top_note={{ item.name|urlencode }}" class="brand-item note-brand-item">
+                            <span class="note-filter-icon">
+                                {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}">{% else %}{{ item.name|first }}{% endif %}
+                            </span>
+                            <span>{{ item.name }}</span>
+                        </a>
                     {% endfor %}
                 </div>
 
                 <div class="note-group">
                     <h2>MIDDLE NOTES</h2>
-                    {% for item in middle_notes %}
-                        <a href="?middle_note={{ item }}" class="brand-item">{{ item }}</a>
+                    {% for item in middle_note_items %}
+                        <a href="?middle_note={{ item.name|urlencode }}" class="brand-item note-brand-item">
+                            <span class="note-filter-icon">
+                                {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}">{% else %}{{ item.name|first }}{% endif %}
+                            </span>
+                            <span>{{ item.name }}</span>
+                        </a>
                     {% endfor %}
                 </div>
 
                 <div class="note-group">
                     <h2>BASE NOTES</h2>
-                    {% for item in base_notes %}
-                        <a href="?base_note={{ item }}" class="brand-item">{{ item }}</a>
+                    {% for item in base_note_items %}
+                        <a href="?base_note={{ item.name|urlencode }}" class="brand-item note-brand-item">
+                            <span class="note-filter-icon">
+                                {% if item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}">{% else %}{{ item.name|first }}{% endif %}
+                            </span>
+                            <span>{{ item.name }}</span>
+                        </a>
                     {% endfor %}
                 </div>
 
@@ -371,4 +395,5 @@ document.addEventListener("keydown", (event) => {
 </script>
 
 {% endblock %}
+
 

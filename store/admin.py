@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import (
     CollectionCard,
+    SiteSetting,
+    PhoneOTP,
+    NoteImage,
     Order,
     Product,
     ProductImage,
@@ -29,6 +32,38 @@ class CollectionCardAdmin(admin.ModelAdmin):
     list_editable = ("ordering", "is_active")
     search_fields = ("title", "subtitle", "button_text", "destination_url")
     ordering = ("ordering", "id")
+    fieldsets = (
+        (None, {"fields": ("title", "subtitle", "image", "button_text", "destination_url", "collection_type")}),
+        ("Presentation", {"fields": ("accent_label", "accent_color", "ordering", "is_active")}),
+    )
+
+
+@admin.register(SiteSetting)
+class SiteSettingAdmin(admin.ModelAdmin):
+    list_display = ("whatsapp_number", "updated_at")
+
+    def has_add_permission(self, request):
+        return not SiteSetting.objects.exists()
+
+
+@admin.register(NoteImage)
+class NoteImageAdmin(admin.ModelAdmin):
+    list_display = ("name", "ordering", "is_active", "updated_at")
+    list_filter = ("is_active",)
+    list_editable = ("ordering", "is_active")
+    search_fields = ("name",)
+    ordering = ("ordering", "name")
+
+
+@admin.register(PhoneOTP)
+class PhoneOTPAdmin(admin.ModelAdmin):
+    list_display = ("phone_number", "purpose", "attempts", "expires_at", "consumed_at", "created_at")
+    list_filter = ("purpose", "consumed_at")
+    search_fields = ("phone_number",)
+    readonly_fields = ("phone_number", "purpose", "code_hash", "attempts", "first_name", "last_name", "receive_offers", "expires_at", "consumed_at", "created_at")
+
+    def has_add_permission(self, request):
+        return False
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -101,5 +136,6 @@ class VariantAdmin(admin.ModelAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ("product", "sort_order", "created_at")
     search_fields = ("product__inspired_by", "alt_text")
+
 
 

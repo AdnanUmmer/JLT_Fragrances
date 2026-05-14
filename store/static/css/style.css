@@ -6708,3 +6708,214 @@ button,
         padding-right: 0;
     }
 }
+
+/* ==================== REQUESTED POLISH: NOTES, WHATSAPP, CARDS, SIDEBAR ==================== */
+:root {
+    --premium-edge: rgba(216, 197, 166, 0.2);
+}
+
+.whatsapp-float {
+    position: fixed;
+    right: clamp(16px, 3vw, 28px);
+    bottom: clamp(18px, 3vw, 30px);
+    z-index: 3500;
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(216, 197, 166, 0.34);
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 20%, rgba(245, 237, 226, 0.2), transparent 34%), linear-gradient(145deg, #102317, #060806);
+    color: #e9d6b5;
+    font-size: 28px;
+    text-decoration: none;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.36);
+    transition: transform 0.28s ease, border-color 0.28s ease, color 0.28s ease, background 0.28s ease;
+}
+
+.whatsapp-float:hover {
+    transform: translateY(-4px) scale(1.04);
+    border-color: rgba(216, 197, 166, 0.58);
+    color: #f7ead1;
+    background: radial-gradient(circle at 30% 20%, rgba(245, 237, 226, 0.25), transparent 34%), linear-gradient(145deg, #14351f, #080a07);
+}
+
+.collection-sidebar {
+    border-radius: 10px;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.34);
+}
+
+.collection-sidebar h3 {
+    margin: 18px 0 18px;
+    letter-spacing: 0.12em;
+}
+
+.collection-sidebar h3::after {
+    margin-top: 10px;
+}
+
+.collection-sidebar ul {
+    margin-bottom: 20px;
+}
+
+.collection-sidebar li a,
+.collection-sidebar .side-link,
+.collection-sidebar .accordion-box a,
+.note-filter-link {
+    min-height: 40px;
+    padding: 7px 6px;
+    gap: 10px;
+    align-items: center;
+}
+
+.side-row {
+    min-height: 42px;
+    padding: 0 6px;
+}
+
+.line {
+    margin: 10px 0;
+}
+
+.collection-sidebar .accordion-box.open,
+.collection-sidebar .accordion-box.active {
+    max-height: 330px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.collection-sidebar .notes-filter-box.open,
+.collection-sidebar .notes-filter-box.active {
+    max-height: 360px;
+}
+
+.note-filter-link,
+.note-brand-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+
+.note-filter-icon {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid rgba(216, 197, 166, 0.24);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.035);
+    color: rgba(245, 237, 226, 0.78);
+    font-size: 12px;
+    font-weight: 700;
+    overflow: hidden;
+}
+
+.note-filter-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.brands-page .brand-item,
+.collection-sidebar #brandBox a {
+    display: flex;
+    align-items: center;
+    min-height: 42px;
+    line-height: 1.35;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.split-card {
+    --card-accent: var(--beige);
+}
+
+.split-card:hover,
+.split-card:focus-visible {
+    border-color: color-mix(in srgb, var(--card-accent), white 18%);
+}
+
+.card-tag,
+.collection-card-cta {
+    color: var(--card-accent);
+}
+
+.collection-card-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    margin-top: 22px;
+    padding: 0 18px;
+    border: 1px solid rgba(216, 197, 166, 0.28);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.best-sellers-grid {
+    align-items: stretch;
+}
+
+.best-sellers-card {
+    min-height: 100%;
+}
+
+.best-sellers-card .image-wrapper {
+    flex: 0 0 auto;
+}
+
+.best-sellers-card .card-info {
+    position: relative;
+    flex: 1 0 auto;
+    min-height: 118px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    background: #050505;
+}
+
+.best-sellers-card .card-info h3 {
+    margin: 0;
+    min-height: 2.8em;
+    max-height: none;
+    overflow: visible;
+    color: beige;
+    opacity: 1;
+    transform: none;
+}
+
+.best-sellers-card .price {
+    margin-top: auto;
+    color: rgba(245, 245, 220, 0.84);
+}
+
+@media (max-width: 900px) {
+    .collection-sidebar {
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 760px) {
+    .whatsapp-float {
+        width: 52px;
+        height: 52px;
+        right: 16px;
+        bottom: 18px;
+        font-size: 25px;
+    }
+
+    .best-sellers-card .card-info {
+        min-height: 96px;
+        padding-bottom: 22px;
+    }
+
+    .collection-card-cta {
+        margin-top: 18px;
+        min-height: 38px;
+        width: min(100%, 240px);
+    }
+}

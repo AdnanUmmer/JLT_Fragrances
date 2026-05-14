@@ -29,6 +29,8 @@ urlpatterns = [
 
     path('login/', views.login_view, name='login'),
     path('signup/', views.signup_view, name='signup'),
+    path('phone-auth/<str:purpose>/', views.phone_auth_start, name='phone_auth_start'),
+    path('phone-auth/<str:purpose>/verify/', views.phone_auth_verify, name='phone_auth_verify'),
     path('logout/', views.logout_view, name='logout'),
     path('account/', views.account_view, name='account'),
     path('my-orders/', views.my_orders, name='my_orders'),
@@ -54,3 +56,4 @@ urlpatterns = [
     path('checkout/verify-razorpay-payment/', views.verify_razorpay_payment, name='verify_razorpay_payment'),
     path('checkout/success/', views.checkout_success, name='checkout_success'),
 ]
+

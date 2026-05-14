@@ -44,6 +44,8 @@
 
             <div class="auth-divider"><span>OR</span></div>
 
+            <a href="{% url 'phone_auth_start' 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="luxury-secondary-btn full-width">Login with Phone OTP</a>
+
             {% if google_login_url %}
                 <a href="{{ google_login_url }}" class="luxury-google-btn">
                     <span class="google-mark">G</span>
@@ -59,3 +61,4 @@
     </div>
 </section>
 {% endblock %}
+

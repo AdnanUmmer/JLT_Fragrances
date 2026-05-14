@@ -1,0 +1,50 @@
+{% extends 'store/base.html' %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card auth-card-entrance {% if purpose == 'signup' %}auth-card-wide{% endif %}">
+        <p class="auth-kicker">Phone Verification</p>
+        <h1>{% if purpose == 'signup' %}Create with Phone{% else %}Login with Phone{% endif %}</h1>
+        <p class="auth-subheading">We will send a secure one-time code to your WhatsApp/SMS capable phone number.</p>
+
+        <form method="POST" class="auth-form {% if purpose == 'signup' %}auth-form-grid{% endif %}" data-loading-form>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% if purpose == 'signup' %}
+                <div class="auth-field">
+                    <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<small class="auth-error">{{ form.first_name.errors.0 }}</small>{% endif %}
+                </div>
+                <div class="auth-field">
+                    <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}<small class="auth-error">{{ form.last_name.errors.0 }}</small>{% endif %}
+                </div>
+            {% endif %}
+
+            <div class="auth-field {% if purpose == 'signup' %}auth-field-full{% endif %}">
+                <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}<small class="auth-error">{{ form.phone_number.errors.0 }}</small>{% endif %}
+            </div>
+
+            {% if purpose == 'signup' %}
+                <div class="auth-field auth-field-full">
+                    <label class="lux-check">
+                        {{ form.receive_offers }}
+                        <span>Receive exclusive offers and fragrance updates</span>
+                    </label>
+                </div>
+            {% endif %}
+
+            <div class="auth-field {% if purpose == 'signup' %}auth-field-full{% endif %}">
+                <button type="submit" class="luxury-primary-btn full-width" data-loading-button>
+                    <span>Send Verification Code</span>
+                    <span class="button-spinner" aria-hidden="true"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
