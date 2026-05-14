@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.urls import reverse
 from django.templatetags.static import static
 
 
@@ -87,6 +88,43 @@ class HeroSection(models.Model):
     def __str__(self):
         return "Active Hero Image" if self.is_active else f"Hero Image #{self.pk}"
 
+
+
+class CollectionCard(models.Model):
+    INSPIRED = "like"
+    ORIGINAL = "love"
+    CUSTOM = "custom"
+    COLLECTION_CHOICES = [
+        (INSPIRED, "Inspired Fragrances"),
+        (ORIGINAL, "Original Fragrances"),
+        (CUSTOM, "Custom URL"),
+    ]
+
+    title = models.CharField(max_length=120)
+    subtitle = models.TextField(blank=True)
+    image = models.ImageField(upload_to="collections/", blank=True, null=True)
+    button_text = models.CharField(max_length=80, default="Explore Collection")
+    collection_type = models.CharField(max_length=20, choices=COLLECTION_CHOICES, default=INSPIRED)
+    destination_url = models.CharField(max_length=255, blank=True)
+    ordering = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("ordering", "id")
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def destination_href(self):
+        if self.destination_url:
+            return self.destination_url
+        if self.collection_type == self.ORIGINAL:
+            return reverse("collection_original")
+        if self.collection_type == self.INSPIRED:
+            return reverse("collection_inspired")
+        return reverse("collection", args=["all"])
 
 class AboutSection(models.Model):
     ABOUT = "about"
@@ -263,3 +301,4 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.pk} - {self.user}"
+

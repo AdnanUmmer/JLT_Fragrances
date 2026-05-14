@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import (
+    CollectionCard,
     Order,
     Product,
     ProductImage,
@@ -19,6 +20,15 @@ class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
 
+
+
+@admin.register(CollectionCard)
+class CollectionCardAdmin(admin.ModelAdmin):
+    list_display = ("title", "collection_type", "ordering", "is_active", "updated_at")
+    list_filter = ("collection_type", "is_active")
+    list_editable = ("ordering", "is_active")
+    search_fields = ("title", "subtitle", "button_text", "destination_url")
+    ordering = ("ordering", "id")
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -91,3 +101,5 @@ class VariantAdmin(admin.ModelAdmin):
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ("product", "sort_order", "created_at")
     search_fields = ("product__inspired_by", "alt_text")
+
+

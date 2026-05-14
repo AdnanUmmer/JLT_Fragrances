@@ -29,7 +29,7 @@ from .forms import (
     ProfileForm,
     SignupForm,
 )
-from .models import AboutSection, HeroSection, Order, Product, ProductImage, SavedAddress, Variant, WishlistItem
+from .models import AboutSection, CollectionCard, HeroSection, Order, Product, ProductImage, SavedAddress, Variant, WishlistItem
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -993,6 +993,7 @@ def home(request):
             "hero_section": HeroSection.objects.filter(is_active=True).first(),
             "about_section": AboutSection.objects.filter(section_type=AboutSection.ABOUT).first(),
             "luxury_section": AboutSection.objects.filter(section_type=AboutSection.LUXURY).first(),
+            "collection_cards": CollectionCard.objects.filter(is_active=True),
             "wishlist_items": get_wishlist_ids(request),
         },
     )
@@ -1782,3 +1783,4 @@ class LuxuryPasswordResetView(PasswordResetView):
             "If an account exists for that email, a reset link has been sent.",
         )
         return super().form_valid(form)
+

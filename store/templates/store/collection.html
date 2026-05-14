@@ -4,8 +4,18 @@
 
 
 <section class="collection {{ theme_class|default:'theme-inspired' }}">
+    <button type="button" class="mobile-filter-toggle" aria-controls="collectionFilters" aria-expanded="false">
+        <i class="fa-solid fa-sliders"></i>
+        Filters
+    </button>
+    <div class="filter-backdrop" data-filter-close></div>
     <!-- ================= LEFT SIDEBAR ================= -->
-    <aside class="collection-sidebar luxury-panel">
+    <aside class="collection-sidebar luxury-panel" id="collectionFilters" aria-label="Collection filters">
+        <div class="filter-head">
+            <span>Filters</span>
+            <button type="button" class="filter-close" data-filter-close aria-label="Close filters">&times;</button>
+        </div>
+        <div class="collection-sidebar-scroll">
 
         <h3 class="browse">BROWSE BY</h3>
 
@@ -42,12 +52,34 @@
         <div class="line"></div>
 
         <!-- BRANDS -->
-        <a href="?show=brands" class="side-link">BRANDS</a>
+                <div class="side-row" onclick="toggleAccordion('brandBox', this)" aria-expanded="false">
+            <span>BRANDS</span>
+            <span class="plus">+</span>
+        </div>
+
+        <div id="brandBox" class="accordion-box">
+            {% for item in brands %}
+                <a href="?brand={{ item }}">{{ item }}</a>
+            {% endfor %}
+        </div>
+
+        <a href="?show=brands" class="side-link side-link-small">View all brands</a>
 
         <div class="line"></div>
 
         <!-- NOTES -->
-        <a href="?show=notes" class="side-link">NOTES</a>
+                <div class="side-row" onclick="toggleAccordion('notesBox', this)" aria-expanded="false">
+            <span>NOTES</span>
+            <span class="plus">+</span>
+        </div>
+
+        <div id="notesBox" class="accordion-box">
+            {% for item in top_notes|slice:":8" %}<a href="?top_note={{ item }}">{{ item }}</a>{% endfor %}
+            {% for item in middle_notes|slice:":6" %}<a href="?middle_note={{ item }}">{{ item }}</a>{% endfor %}
+            {% for item in base_notes|slice:":6" %}<a href="?base_note={{ item }}">{{ item }}</a>{% endfor %}
+        </div>
+
+        <a href="?show=notes" class="side-link side-link-small">View all notes</a>
 
         <div class="line"></div>
 
@@ -62,13 +94,8 @@
                 <a href="?occasion={{ item }}">{{ item }}</a>
             {% endfor %}
         </div>
-
-        
-        
-
+        </div>
     </aside>
-
-
 
     <!-- ================= RIGHT CONTENT ================= -->
     <main class="collection-content">
@@ -319,14 +346,29 @@ function toggleAccordion(id, el) {
     const box = document.getElementById(id);
     const plus = el.querySelector(".plus");
 
+    if (!box) return;
     box.classList.toggle("open");
-
-    if (box.classList.contains("open")) {
-        plus.innerText = "-";
-    } else {
-        plus.innerText = "+";
-    }
+    el.setAttribute("aria-expanded", box.classList.contains("open") ? "true" : "false");
+    plus.innerText = box.classList.contains("open") ? "-" : "+";
 }
+
+const filterToggle = document.querySelector(".mobile-filter-toggle");
+const filterPanel = document.getElementById("collectionFilters");
+const filterClosers = document.querySelectorAll("[data-filter-close]");
+
+function setFilterDrawer(open) {
+    if (!filterPanel || !filterToggle) return;
+    document.body.classList.toggle("filter-drawer-open", open);
+    filterPanel.classList.toggle("is-open", open);
+    filterToggle.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+filterToggle?.addEventListener("click", () => setFilterDrawer(true));
+filterClosers.forEach((closer) => closer.addEventListener("click", () => setFilterDrawer(false)));
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") setFilterDrawer(false);
+});
 </script>
 
 {% endblock %}
+

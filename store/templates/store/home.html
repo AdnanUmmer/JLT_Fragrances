@@ -314,7 +314,7 @@
         }
 
         .card-title {
-            font-family: var(--serif);
+            font-family: 'Montserrat', sans-serif;
             font-size: clamp(1.8rem, 3.2vw, 3.35rem);
             line-height: 1.04;
             margin-bottom: 16px;
@@ -753,22 +753,33 @@
                     <p class="section-copy">A dual universe designed for those who admire the timeless and those who prefer to define their own signature.</p>
                 </div>
                 <div class="split-grid">
-                    <a href="{% url 'collection_inspired' %}" class="split-card reveal">
-                        <div class="split-card-media like"></div>
-                        <div class="split-card-content">
-                            <span class="card-tag">Collection I</span>
-                            <h3 class="card-title">JUST LIKE THAT</h3>
-                            <p class="card-copy">Inspired by timeless masterpieces. Iconic compositions interpreted with modern confidence and luxurious depth.</p>
-                        </div>
-                    </a>
-                    <a href="{% url 'collection_original' %}" class="split-card reveal">
-                        <div class="split-card-media love"></div>
-                        <div class="split-card-content">
-                            <span class="card-tag">Collection II</span>
-                            <h3 class="card-title">JUST LOVE THAT</h3>
-                            <p class="card-copy">Original scents made to stand apart. Distinct personalities created for those who prefer legacy over imitation.</p>
-                        </div>
-                    </a>
+                    {% for card in collection_cards %}
+                        <a href="{{ card.destination_href }}" class="split-card reveal">
+                            <div class="split-card-media {% cycle 'like' 'love' %}"{% if card.image %} style="background-image: linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.65)), url('{{ card.image.url }}');"{% endif %}></div>
+                            <div class="split-card-content">
+                                <span class="card-tag">{{ card.button_text }}</span>
+                                <h3 class="card-title">{{ card.title }}</h3>
+                                <p class="card-copy">{{ card.subtitle }}</p>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <a href="{% url 'collection_inspired' %}" class="split-card reveal">
+                            <div class="split-card-media like"></div>
+                            <div class="split-card-content">
+                                <span class="card-tag">Collection I</span>
+                                <h3 class="card-title">JUST LIKE THAT</h3>
+                                <p class="card-copy">Inspired by timeless masterpieces. Iconic compositions interpreted with modern confidence and luxurious depth.</p>
+                            </div>
+                        </a>
+                        <a href="{% url 'collection_original' %}" class="split-card reveal">
+                            <div class="split-card-media love"></div>
+                            <div class="split-card-content">
+                                <span class="card-tag">Collection II</span>
+                                <h3 class="card-title">JUST LOVE THAT</h3>
+                                <p class="card-copy">Original scents made to stand apart. Distinct personalities created for those who prefer legacy over imitation.</p>
+                            </div>
+                        </a>
+                    {% endfor %}
                 </div>
             </section>
 
@@ -902,3 +913,5 @@
 
     </script>
 {% endblock %}
+
+
