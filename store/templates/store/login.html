@@ -10,6 +10,15 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
 
+            {% if google_login_url %}
+                <a href="{{ google_login_url }}" class="luxury-google-btn">
+                    <span class="google-mark">G</span>
+                    Continue with Google
+                </a>
+
+                <div class="auth-divider"><span>OR</span></div>
+            {% endif %}
+
             <div class="auth-field">
                 <label for="{{ form.username.id_for_label }}">Email Address</label>
                 {{ form.username }}
@@ -41,17 +50,6 @@
                 <span>Sign In</span>
                 <span class="button-spinner" aria-hidden="true"></span>
             </button>
-
-            <div class="auth-divider"><span>OR</span></div>
-
-            <a href="{% url 'phone_auth_start' 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="luxury-secondary-btn full-width">Login with Phone OTP</a>
-
-            {% if google_login_url %}
-                <a href="{{ google_login_url }}" class="luxury-google-btn">
-                    <span class="google-mark">G</span>
-                    Continue with Google
-                </a>
-            {% endif %}
 
             <p class="auth-switch">
                 Don’t have an account?

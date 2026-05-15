@@ -10,6 +10,19 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
 
+            {% if google_login_url %}
+                <div class="auth-field auth-field-full">
+                    <a href="{{ google_login_url }}" class="luxury-google-btn">
+                        <span class="google-mark">G</span>
+                        Continue with Google
+                    </a>
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <div class="auth-divider"><span>OR</span></div>
+                </div>
+            {% endif %}
+
             <div class="auth-field">
                 <label for="{{ form.first_name.id_for_label }}">First Name</label>
                 {{ form.first_name }}
@@ -26,12 +39,6 @@
                 <label for="{{ form.email.id_for_label }}">Email Address</label>
                 {{ form.email }}
                 {% if form.email.errors %}<small class="auth-error">{{ form.email.errors.0 }}</small>{% endif %}
-            </div>
-
-            <div class="auth-field">
-                <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
-                {{ form.phone_number }}
-                {% if form.phone_number.errors %}<small class="auth-error">{{ form.phone_number.errors.0 }}</small>{% endif %}
             </div>
 
             <div class="auth-field">
@@ -77,21 +84,6 @@
                     <span class="button-spinner" aria-hidden="true"></span>
                 </button>
             </div>
-
-            <div class="auth-field auth-field-full">
-                <div class="auth-divider"><span>OR</span></div>
-
-                <a href="{% url 'phone_auth_start' 'signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}" class="luxury-secondary-btn full-width">Create Account with Phone OTP</a>
-            </div>
-
-            {% if google_login_url %}
-                <div class="auth-field auth-field-full">
-                    <a href="{{ google_login_url }}" class="luxury-google-btn">
-                        <span class="google-mark">G</span>
-                        Continue with Google
-                    </a>
-                </div>
-            {% endif %}
 
             <p class="auth-switch auth-field-full">
                 Already have an account?

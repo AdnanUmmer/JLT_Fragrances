@@ -183,34 +183,6 @@ class NoteImage(models.Model):
         return self.name
 
 
-class PhoneOTP(models.Model):
-    SIGNUP = "signup"
-    LOGIN = "login"
-    PURPOSE_CHOICES = [
-        (SIGNUP, "Signup"),
-        (LOGIN, "Login"),
-    ]
-
-    phone_number = models.CharField(max_length=25)
-    purpose = models.CharField(max_length=12, choices=PURPOSE_CHOICES)
-    code_hash = models.CharField(max_length=64)
-    attempts = models.PositiveSmallIntegerField(default=0)
-    first_name = models.CharField(max_length=75, blank=True)
-    last_name = models.CharField(max_length=75, blank=True)
-    receive_offers = models.BooleanField(default=False)
-    expires_at = models.DateTimeField()
-    consumed_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ("-created_at",)
-        indexes = [
-            models.Index(fields=("phone_number", "purpose", "created_at")),
-        ]
-
-    def __str__(self):
-        return f"{self.phone_number} - {self.purpose}"
-
 # ================= VARIANT =================
 class Variant(models.Model):
     product = models.ForeignKey(

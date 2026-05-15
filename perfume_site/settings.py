@@ -218,12 +218,6 @@ BRAND_LOGO_URL = os.getenv('BRAND_LOGO_URL', '')
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
 WHATSAPP_MESSAGE = os.getenv('WHATSAPP_MESSAGE', 'Hello JLT Fragrances, I would like help choosing a perfume.')
 
-# Phone OTP via Twilio SMS. In DEBUG, missing Twilio credentials use a local development OTP message.
-TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID', '')
-TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN', '')
-TWILIO_FROM_NUMBER = os.getenv('TWILIO_FROM_NUMBER', '')
-PHONE_OTP_EXPIRY_MINUTES = int(os.getenv('PHONE_OTP_EXPIRY_MINUTES', '10'))
-
 # ========================
 # TELEGRAM
 # ========================

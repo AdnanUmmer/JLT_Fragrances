@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import (
     CollectionCard,
     SiteSetting,
-    PhoneOTP,
     NoteImage,
     Order,
     Product,
@@ -54,16 +53,6 @@ class NoteImageAdmin(admin.ModelAdmin):
     search_fields = ("name",)
     ordering = ("ordering", "name")
 
-
-@admin.register(PhoneOTP)
-class PhoneOTPAdmin(admin.ModelAdmin):
-    list_display = ("phone_number", "purpose", "attempts", "expires_at", "consumed_at", "created_at")
-    list_filter = ("purpose", "consumed_at")
-    search_fields = ("phone_number",)
-    readonly_fields = ("phone_number", "purpose", "code_hash", "attempts", "first_name", "last_name", "receive_offers", "expires_at", "consumed_at", "created_at")
-
-    def has_add_permission(self, request):
-        return False
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):

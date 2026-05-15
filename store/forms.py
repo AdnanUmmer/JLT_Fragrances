@@ -70,17 +70,6 @@ class SignupForm(forms.Form):
             }
         ),
     )
-    phone_number = forms.CharField(
-        max_length=25,
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "lux-input",
-                "placeholder": "+91 98765 43210",
-                "autocomplete": "tel",
-            }
-        ),
-    )
     password = forms.CharField(
         widget=forms.PasswordInput(
             attrs={
@@ -136,56 +125,11 @@ class SignupForm(forms.Form):
         )
 
         profile = user.profile
-        profile.phone_number = self.cleaned_data.get("phone_number", "").strip()
         profile.receive_offers = self.cleaned_data.get("receive_offers", False)
-        profile.save()
+        profile.save(update_fields=["receive_offers", "updated_at"])
         return user
 
 
-
-class PhoneAuthStartForm(forms.Form):
-    phone_number = forms.CharField(
-        max_length=25,
-        widget=forms.TextInput(
-            attrs={
-                "class": "lux-input",
-                "placeholder": "+91 98765 43210",
-                "autocomplete": "tel",
-            }
-        ),
-    )
-    first_name = forms.CharField(
-        max_length=75,
-        required=False,
-        widget=forms.TextInput(attrs={"class": "lux-input", "placeholder": "First name"}),
-    )
-    last_name = forms.CharField(
-        max_length=75,
-        required=False,
-        widget=forms.TextInput(attrs={"class": "lux-input", "placeholder": "Last name"}),
-    )
-    receive_offers = forms.BooleanField(required=False)
-
-
-class PhoneOTPVerifyForm(forms.Form):
-    code = forms.CharField(
-        min_length=6,
-        max_length=6,
-        widget=forms.TextInput(
-            attrs={
-                "class": "lux-input otp-input",
-                "placeholder": "6-digit code",
-                "inputmode": "numeric",
-                "autocomplete": "one-time-code",
-            }
-        ),
-    )
-
-    def clean_code(self):
-        code = "".join(ch for ch in self.cleaned_data["code"] if ch.isdigit())
-        if len(code) != 6:
-            raise ValidationError("Enter the 6-digit verification code.")
-        return code
 
 class ProfileForm(forms.ModelForm):
     first_name = forms.CharField(
