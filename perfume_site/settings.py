@@ -44,6 +44,8 @@ CSRF_TRUSTED_ORIGINS = [
 if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
     CSRF_TRUSTED_ORIGINS.append(f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}")
 
+RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "")
+
 HAS_WHITENOISE = importlib.util.find_spec('whitenoise') is not None
 HAS_DJ_DATABASE_URL = importlib.util.find_spec('dj_database_url') is not None
 
@@ -64,7 +66,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 
-    'store',
+    'store.apps.StoreConfig',
 ]
 
 # ========================
@@ -137,6 +139,9 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'account'
 LOGOUT_REDIRECT_URL = 'login'
 
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
+
 ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_UNIQUE_EMAIL = True
@@ -153,12 +158,6 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
-if os.getenv('GOOGLE_CLIENT_ID') and os.getenv('GOOGLE_CLIENT_SECRET'):
-    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
-        'client_id': os.getenv('GOOGLE_CLIENT_ID'),
-        'secret': os.getenv('GOOGLE_CLIENT_SECRET'),
-        'key': '',
-    }
 
 # ========================
 # STATIC & MEDIA

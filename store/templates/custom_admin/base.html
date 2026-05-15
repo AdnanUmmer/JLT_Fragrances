@@ -21,6 +21,7 @@
             <a href="{% url 'admin_hero' %}">Hero Section</a>
             <a href="{% url 'admin_bestsellers' %}">Bestsellers</a>
             <a href="{% url 'admin_content' %}">Content Management</a>
+            <a href="{% url 'admin:socialaccount_socialapp_changelist' %}">Social Applications</a>
         </nav>
         <form method="post" action="{% url 'admin_logout' %}" class="custom-admin-logout">
             {% csrf_token %}

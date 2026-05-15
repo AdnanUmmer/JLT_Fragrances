@@ -20,5 +20,9 @@
         <span>Total Revenue</span>
         <strong>₹{{ total_revenue|floatformat:2 }}</strong>
     </article>
+    <a class="custom-admin-card custom-admin-stat-card" href="{% url 'admin:socialaccount_socialapp_changelist' %}">
+        <span>Google Login</span>
+        <strong>Social Apps</strong>
+    </a>
 </section>
 {% endblock %}

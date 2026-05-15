@@ -22,8 +22,7 @@ from django.conf.urls.static import static
 from store import views as store_views
 
 urlpatterns = [
-    path('admin/', store_views.admin_dashboard, name='custom_admin_root'),
-    path('django-admin/', django_admin.site.urls),
+    path('admin/', django_admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('', include('store.urls')),
     path(

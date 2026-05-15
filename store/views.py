@@ -154,20 +154,7 @@ def _get_safe_redirect(request, default="home"):
     return reverse(default)
 
 
-def _google_oauth_configured():
-    if getattr(settings, "SOCIALACCOUNT_PROVIDERS", {}).get("google", {}).get("APP"):
-        return True
-    try:
-        from allauth.socialaccount.models import SocialApp
-
-        return SocialApp.objects.filter(provider="google").exists()
-    except Exception:
-        return False
-
-
 def _google_login_url(next_url):
-    if not _google_oauth_configured():
-        return None
     for name, args in (("google_login", []), ("socialaccount_login", ["google"])):
         try:
             url = reverse(name, args=args)

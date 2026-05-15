@@ -22,12 +22,11 @@ python manage.py migrate
    - `http://127.0.0.1:8000/accounts/google/login/callback/`
    - `http://localhost:8000/accounts/google/login/callback/`
    - Your production callback, for example `https://yourdomain.com/accounts/google/login/callback/`
-6. Start Django admin and create a `SocialApp`:
-   - Provider: Google
-   - Name: Google
-   - Client id: your Google client ID
-   - Secret key: your Google client secret
-   - Sites: attach the current site
+6. Set these environment variables locally and on Render:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+7. Run migrations. The app automatically creates or updates the Google `SocialApp` and attaches it to Site ID 1.
+8. You can verify the configuration in Django admin at `/admin/socialaccount/socialapp/`.
 
 ## Notes
 

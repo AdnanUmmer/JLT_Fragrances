@@ -1,4 +1,6 @@
 from django.contrib import admin
+from allauth.socialaccount.models import SocialApp
+
 from .models import (
     CollectionCard,
     SiteSetting,
@@ -11,6 +13,20 @@ from .models import (
     Variant,
     WishlistItem,
 )
+
+
+try:
+    admin.site.unregister(SocialApp)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(SocialApp)
+class GoogleSocialAppAdmin(admin.ModelAdmin):
+    list_display = ("name", "provider", "client_id")
+    list_filter = ("provider", "sites")
+    search_fields = ("name", "provider", "client_id")
+    filter_horizontal = ("sites",)
 
 
 class VariantInline(admin.TabularInline):

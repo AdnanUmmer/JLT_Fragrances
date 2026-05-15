@@ -10,14 +10,12 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
 
-            {% if google_login_url %}
-                <a href="{{ google_login_url }}" class="luxury-google-btn">
-                    <span class="google-mark">G</span>
-                    Continue with Google
-                </a>
+            <a href="{{ google_login_url }}" class="luxury-google-btn">
+                <span class="google-mark">G</span>
+                Continue with Google
+            </a>
 
-                <div class="auth-divider"><span>OR</span></div>
-            {% endif %}
+            <div class="auth-divider"><span>OR</span></div>
 
             <div class="auth-field">
                 <label for="{{ form.username.id_for_label }}">Email Address</label>

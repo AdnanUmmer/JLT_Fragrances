@@ -10,18 +10,16 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ next }}">
 
-            {% if google_login_url %}
-                <div class="auth-field auth-field-full">
-                    <a href="{{ google_login_url }}" class="luxury-google-btn">
-                        <span class="google-mark">G</span>
-                        Continue with Google
-                    </a>
-                </div>
+            <div class="auth-field auth-field-full">
+                <a href="{{ google_login_url }}" class="luxury-google-btn">
+                    <span class="google-mark">G</span>
+                    Continue with Google
+                </a>
+            </div>
 
-                <div class="auth-field auth-field-full">
-                    <div class="auth-divider"><span>OR</span></div>
-                </div>
-            {% endif %}
+            <div class="auth-field auth-field-full">
+                <div class="auth-divider"><span>OR</span></div>
+            </div>
 
             <div class="auth-field">
                 <label for="{{ form.first_name.id_for_label }}">First Name</label>
